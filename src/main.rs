@@ -5,6 +5,12 @@ mod model;
 use data::*;
 use errors::*;
 use std::convert::TryInto;
+use structopt::StructOpt;
+
+#[derive(StructOpt)]
+struct Opt {
+    video_hash_id: Option<String>,
+}
 
 fn main() -> Result<()> {
     #[cfg(debug_assertions)]
@@ -12,72 +18,44 @@ fn main() -> Result<()> {
 
     pretty_env_logger::init();
 
+    let opt = Opt::from_args();
+
     let token = std::env::var("TOKEN").expect("Missing TOKEN env variable");
 
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let elephantry = elephantry::Pool::new(&database_url)?;
 
-    let mut page = 1;
+    if let Some(video_hash_id) = opt.video_hash_id {
+        save_video(&elephantry, &token, &video_hash_id)?;
+    } else {
+        let mut page = 1;
 
-    loop {
-        let data = get_data(&token, page)?;
+        loop {
+            let data = get_data(&token, page)?;
 
-        log::info!("Fetching page {}/{}", page, data.total_page());
+            log::info!("Fetching page {}/{}", page, data.total_page());
 
-        for ref hash_id in data.hash_id() {
-            let debates = get_debates(&hash_id, &token)?;
-            let video = match debates.video() {
-                Some(video) => video,
-                None => continue,
-            };
+            for ref hash_id in data.hash_id() {
+                elephantry.transaction().start()?;
+                elephantry.transaction().set_deferrable(
+                    Some(vec!["comment_reply_to_id_fkey"]),
+                    elephantry::transaction::Constraints::Deferred,
+                )?;
 
-            save::<model::video::Model, _>(&elephantry, "video_pkey", video)?;
-
-            for speaker in &video.speakers {
-                save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)?;
-            }
-
-            let statements = get_statements(hash_id, &token)?;
-            let statements = match statements.statements() {
-                Some(statements) => statements,
-                None => continue,
-            };
-
-            for statement in statements {
-                save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)?;
-            }
-
-            let comments = get_comments(&hash_id, &token)?;
-            let comments = match comments.comments() {
-                Some(comments) => comments,
-                None => continue,
-            };
-
-            elephantry.transaction().start()?;
-            elephantry.transaction().set_deferrable(
-                Some(vec!["comment_reply_to_id_fkey"]),
-                elephantry::transaction::Constraints::Deferred,
-            )?;
-
-            for comment in comments {
-                if let Some(source) = &comment.source {
-                    save::<model::source::Model, _>(&elephantry, "source_pkey", source)?;
+                match save_video(&elephantry, &token, hash_id) {
+                    Ok(_) => elephantry.transaction().commit()?,
+                    Err(_) => {
+                        elephantry.transaction().roolback(None)?;
+                        log::error!("Unable to save video '{}'", hash_id);
+                    }
                 }
-
-                if let Some(user) = &comment.user {
-                    save::<model::user::Model, _>(&elephantry, "user_pkey", user)?;
-                }
-
-                save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)?;
             }
 
-            elephantry.transaction().commit()?;
-        }
-
-        if page == data.total_page() {
-            break;
-        } else {
-            page += 1;
+            if page == data.total_page() {
+                break;
+            } else {
+                page += 1;
+            }
         }
     }
 
@@ -112,6 +90,50 @@ fn get_data(token: &str, page: u32) -> Result<Data> {
         .json()?;
 
     Ok(response)
+}
+
+fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -> Result<()> {
+    let debates = get_debates(&hash_id, token)?;
+    let video = match debates.video() {
+        Some(video) => video,
+        None => return Ok(()),
+    };
+
+    save::<model::video::Model, _>(&elephantry, "video_pkey", video)?;
+
+    for speaker in &video.speakers {
+        save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)?;
+    }
+
+    let statements = get_statements(hash_id, token)?;
+    let statements = match statements.statements() {
+        Some(statements) => statements,
+        None => return Ok(()),
+    };
+
+    for statement in statements {
+        save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)?;
+    }
+
+    let comments = get_comments(&hash_id, token)?;
+    let comments = match comments.comments() {
+        Some(comments) => comments,
+        None => return Ok(()),
+    };
+
+    for comment in comments {
+        if let Some(source) = &comment.source {
+            save::<model::source::Model, _>(&elephantry, "source_pkey", source)?;
+        }
+
+        if let Some(user) = &comment.user {
+            save::<model::user::Model, _>(&elephantry, "user_pkey", user)?;
+        }
+
+        save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)?;
+    }
+
+    Ok(())
 }
 
 fn save<'a, M, T>(elephantry: &elephantry::Connection, constraint: &str, data: &T) -> Result<()>
