@@ -33,4 +33,36 @@ create table if not exists statement (
     time integer not null
 );
 
+create table if not exists source (
+    url text primary key,
+    language text,
+    site_name text,
+    title text
+);
+
+create table if not exists "user" (
+    id integer primary key,
+    achievements smallint[],
+    mini_picture_url text not null,
+    name text,
+    picture_url text not null,
+    registered_at timestamptz not null,
+    reputation integer not null,
+    speaker_id integer references speaker,
+    username text not null
+);
+
+create table if not exists comment (
+    comment_id integer primary key,
+    approve bool,
+    inserted_at timestamptz not null,
+    is_reported bool not null,
+    reply_to_id integer references comment deferrable,
+    score integer,
+    source_url text references source,
+    statement_id integer not null,
+    text text,
+    user_id integer references "user"
+);
+
 commit;

@@ -20,7 +20,6 @@ fn main() -> Result<()> {
 
     for ref hash_id in data.hash_id() {
         let debates = get_debates(&hash_id, &token)?;
-
         let video = match debates.video() {
             Some(video) => video,
             None => continue,
@@ -49,6 +48,41 @@ fn main() -> Result<()> {
                 log::error!("Unable to save statement: {}", err);
             }
         }
+
+        let comments = get_comments(&hash_id, &token)?;
+        let comments = match comments.comments() {
+            Some(comments) => comments,
+            None => continue,
+        };
+
+        elephantry.transaction().start()?;
+        elephantry.transaction().set_deferrable(
+            Some(vec!["comment_reply_to_id_fkey"]),
+            elephantry::transaction::Constraints::Deferred,
+        )?;
+
+        for comment in comments {
+            if let Some(source) = &comment.source {
+                if let Err(err) = save::<model::source::Model, _>(&elephantry, "source_pkey", source)
+                {
+                    log::error!("Unable to save source: {}", err);
+                }
+            }
+
+            if let Some(user) = &comment.user {
+                if let Err(err) = save::<model::user::Model, _>(&elephantry, "user_pkey", user)
+                {
+                    log::error!("Unable to save user: {}", err);
+                }
+            }
+
+            if let Err(err) = save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)
+            {
+                log::error!("Unable to save comment: {}", err);
+            }
+        }
+
+        elephantry.transaction().commit()?;
     }
 
     Ok(())
@@ -104,6 +138,12 @@ fn get_debates(id: &str, token: &str) -> Result<data::Debates> {
 
 fn get_statements(id: &str, token: &str) -> Result<data::Debates> {
     let request = format!(r#"["2","2","statements:video:{}","phx_join",{{}}]"#, id);
+
+    websocket(request, token)
+}
+
+fn get_comments(id: &str, token: &str) -> Result<data::Debates> {
+    let request = format!(r#"["3","3","comments:video:{}","phx_join",{{}}]"#, id);
 
     websocket(request, token)
 }

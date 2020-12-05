@@ -51,6 +51,18 @@ impl Debates {
 
         None
     }
+
+    pub fn comments(&self) -> Option<&Vec<Comment>> {
+        for debate in &self.0 {
+            if let Debate::Response(response) = debate {
+                if let Content::Comments(ref comments) = response.response {
+                    return Some(&comments.comments);
+                }
+            }
+        }
+
+        None
+    }
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -71,6 +83,7 @@ pub struct Response {
 pub enum Content {
     Video(DebateVideo),
     Statements(Vec<Statement>),
+    Comments(Comments),
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -165,6 +178,102 @@ impl std::convert::TryInto<crate::model::statement::Entity> for Statement {
             speaker_id: self.speaker_id,
             text: self.text,
             time: self.time,
+        };
+
+        Ok(entity)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Comments {
+    comments: Vec<Comment>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Comment {
+    pub approve: Option<bool>,
+    pub id: i32,
+    pub inserted_at: String,
+    pub is_reported: bool,
+    pub reply_to_id: Option<i32>,
+    pub score: Option<i32>,
+    pub source: Option<Source>,
+    pub statement_id: i32,
+    pub text: Option<String>,
+    pub user: Option<User>,
+}
+
+impl std::convert::TryInto<crate::model::comment::Entity> for Comment {
+    type Error = crate::Error;
+
+    fn try_into(self) -> crate::Result<crate::model::comment::Entity> {
+        let entity = crate::model::comment::Entity {
+            comment_id: self.id,
+            approve: self.approve,
+            inserted_at: chrono::DateTime::parse_from_str(&format!("{} +0000", self.inserted_at), "%Y-%m-%dT%H:%M:%S%.6f %z")?,
+            is_reported: self.is_reported,
+            reply_to_id: self.reply_to_id,
+            score: self.score,
+            source_url: self.source.map(|x| x.url),
+            statement_id: self.statement_id,
+            text: self.text,
+            user_id: self.user.map(|x| x.id),
+        };
+
+        Ok(entity)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Source {
+    language: Option<String>,
+    site_name: Option<String>,
+    title: Option<String>,
+    url: String,
+}
+
+impl std::convert::TryInto<crate::model::source::Entity> for Source {
+    type Error = crate::Error;
+
+    fn try_into(self) -> crate::Result<crate::model::source::Entity> {
+        let entity = crate::model::source::Entity {
+            url: self.url,
+            language: self.language,
+            site_name: self.site_name,
+            title: self.title,
+        };
+
+        Ok(entity)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct User {
+    achievements: Vec<i16>,
+    id: i32,
+    mini_picture_url: String,
+    name: Option<String>,
+    picture_url: String,
+    registered_at: String,
+    reputation: i32,
+    speaker_id: Option<i32>,
+    username: String,
+}
+
+impl std::convert::TryInto<crate::model::user::Entity> for User {
+    type Error = crate::Error;
+
+    fn try_into(self) -> crate::Result<crate::model::user::Entity> {
+        let entity = crate::model::user::Entity {
+            user_id: self.id,
+            achievements: self.achievements,
+            mini_picture_url: self.mini_picture_url,
+            name: self.name,
+            picture_url: self.picture_url,
+            registered_at: chrono::DateTime::parse_from_str(&format!("{} +0000", self.registered_at), "%Y-%m-%dT%H:%M:%S%.6f %z")?,
+            reputation: self.reputation,
+            speaker_id: self.speaker_id,
+            username: self.username,
         };
 
         Ok(entity)
