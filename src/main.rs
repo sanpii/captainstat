@@ -36,6 +36,19 @@ fn main() -> Result<()> {
                 log::error!("Unable to save speaker: {}", err);
             }
         }
+
+        let statements = get_statements(hash_id, &token)?;
+        let statements = match statements.statements() {
+            Some(statements) => statements,
+            None => continue,
+        };
+
+        for statement in statements {
+            if let Err(err) = save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)
+            {
+                log::error!("Unable to save statement: {}", err);
+            }
+        }
     }
 
     Ok(())
@@ -85,7 +98,12 @@ where
 
 fn get_debates(id: &str, token: &str) -> Result<data::Debates> {
     let request = format!(r#"["1","1","video_debate:{}","phx_join",{{}}]"#, id);
-    dbg!(&request);
+
+    websocket(request, token)
+}
+
+fn get_statements(id: &str, token: &str) -> Result<data::Debates> {
+    let request = format!(r#"["2","2","statements:video:{}","phx_join",{{}}]"#, id);
 
     websocket(request, token)
 }

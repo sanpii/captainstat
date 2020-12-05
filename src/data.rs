@@ -39,6 +39,18 @@ impl Debates {
 
         None
     }
+
+    pub fn statements(&self) -> Option<&Vec<Statement>> {
+        for debate in &self.0 {
+            if let Debate::Response(response) = debate {
+                if let Content::Statements(ref statements) = response.response {
+                    return Some(&statements);
+                }
+            }
+        }
+
+        None
+    }
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -58,6 +70,7 @@ pub struct Response {
 #[serde(untagged)]
 pub enum Content {
     Video(DebateVideo),
+    Statements(Vec<Statement>),
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -129,6 +142,29 @@ impl std::convert::TryInto<crate::model::speaker::Entity> for Speaker {
             picture: self.picture,
             title: self.title,
             wikidata_item_id: self.wikidata_item_id,
+        };
+
+        Ok(entity)
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Statement {
+    pub id: i32,
+    pub speaker_id: Option<i32>,
+    pub text: String,
+    pub time: i32,
+}
+
+impl std::convert::TryInto<crate::model::statement::Entity> for Statement {
+    type Error = crate::Error;
+
+    fn try_into(self) -> crate::Result<crate::model::statement::Entity> {
+        let entity = crate::model::statement::Entity {
+            statement_id: self.id,
+            speaker_id: self.speaker_id,
+            text: self.text,
+            time: self.time,
         };
 
         Ok(entity)

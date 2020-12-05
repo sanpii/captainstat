@@ -26,4 +26,11 @@ create table if not exists video (
     youtube_offset integer not null
 );
 
+create table if not exists statement (
+    statement_id integer primary key,
+    speaker_id integer references speaker,
+    text text not null,
+    time integer not null
+);
+
 commit;
