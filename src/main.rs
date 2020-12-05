@@ -13,18 +13,26 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
 
     let token = std::env::var("TOKEN").expect("Missing TOKEN env variable");
-    let videos = get_videos(&token)?;
+    let data = get_data(&token)?;
 
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let elephantry = elephantry::Pool::new(&database_url)?;
 
-    for ref video in videos {
+    for ref hash_id in data.hash_id() {
+        let debates = get_debates(&hash_id, &token)?;
+
+        let video = match debates.video() {
+            Some(video) => video,
+            None => continue,
+        };
+
         if let Err(err) = save::<model::video::Model, _>(&elephantry, "video_pkey", video) {
             log::error!("Unable to save video: {}", err);
         }
 
         for speaker in &video.speakers {
-            if let Err(err) = save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker) {
+            if let Err(err) = save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)
+            {
                 log::error!("Unable to save speaker: {}", err);
             }
         }
@@ -33,23 +41,34 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_videos(token: &str) -> Result<Vec<Video>> {
+fn get_data(token: &str) -> Result<Data> {
     let query = serde_json::json!({
         "operationName" : "VideosIndex",
-        "query" : "query VideosIndex($offset: Int! = 1, $limit: Int! = 16, $filters: VideoFilter = {}) {\n  videos(limit: $limit, offset: $offset, filters: $filters) {\n pageNumber\n    totalPages\n    entries {\n      id\n      hash_id: hashId\n youtube_id: youtubeId\n      title\n      insertedAt\n      isPartner\n thumbnail\n      speakers {\n        full_name: fullName\n        id\n slug\n        __typename\n      }\n      __typename\n    }\n    __typename\n }\n}\n",
+        "query" : "query VideosIndex($offset: Int! = 1, $limit: Int! = 16, $filters: VideoFilter = {}) {
+            videos(limit: $limit, offset: $offset, filters: $filters) {
+                pageNumber
+                totalPages
+                entries {
+                    hash_id: hashId
+                    __typename
+                }
+                __typename
+            }
+        }",
         "variables" : {
             "filters" : {},
             "limit" : 4,
             "offset" : 1
         }
     });
+
     let response: Data = attohttpc::post("https://graphql.captainfact.io")
         .header("authorization", format!("Bearer {}", token))
         .json(&query)?
         .send()?
         .json()?;
 
-    Ok(response.data.videos.entries)
+    Ok(response)
 }
 
 fn save<'a, M, T>(elephantry: &elephantry::Connection, constraint: &str, data: &T) -> Result<()>
@@ -62,4 +81,26 @@ where
     elephantry.upsert_one::<M>(&entity, &format!("on constraint {}", constraint), "nothing")?;
 
     Ok(())
+}
+
+fn get_debates(id: &str, token: &str) -> Result<data::Debates> {
+    let request = format!(r#"["1","1","video_debate:{}","phx_join",{{}}]"#, id);
+    dbg!(&request);
+
+    websocket(request, token)
+}
+
+fn websocket(request: String, token: &str) -> Result<data::Debates> {
+    let url = format!(
+        "wss://api.captainfact.io/socket/websocket?token={}&vsn=2.0.0",
+        token
+    );
+    let (mut socket, _) = tungstenite::connect(&url)?;
+
+    socket.write_message(tungstenite::Message::Text(request))?;
+
+    let response = socket.read_message()?;
+    let debates = serde_json::from_str(response.to_text()?)?;
+
+    Ok(debates)
 }

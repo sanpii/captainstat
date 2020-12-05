@@ -12,5 +12,11 @@ pub enum Error {
     Integer(#[from] std::num::ParseIntError),
 
     #[error("{0}")]
+    Json(#[from] serde_json::Error),
+
+    #[error("{0}")]
     Http(#[from] attohttpc::Error),
+
+    #[error("{0}")]
+    Websocket(#[from] tungstenite::Error),
 }
