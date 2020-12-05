@@ -36,18 +36,8 @@ fn main() -> Result<()> {
             log::info!("Fetching page {}/{}", page, data.total_page());
 
             for ref hash_id in data.hash_id() {
-                elephantry.transaction().start()?;
-                elephantry.transaction().set_deferrable(
-                    Some(vec!["comment_reply_to_id_fkey"]),
-                    elephantry::transaction::Constraints::Deferred,
-                )?;
-
-                match save_video(&elephantry, &token, hash_id) {
-                    Ok(_) => elephantry.transaction().commit()?,
-                    Err(_) => {
-                        elephantry.transaction().roolback(None)?;
-                        log::error!("Unable to save video '{}'", hash_id);
-                    }
+                if save_video(&elephantry, &token, hash_id).is_err() {
+                    log::error!("Unable to save video '{}'", hash_id);
                 }
             }
 
@@ -116,10 +106,11 @@ fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -
     }
 
     let comments = get_comments(&hash_id, token)?;
-    let comments = match comments.comments() {
-        Some(comments) => comments,
+    let mut comments = match comments.comments() {
+        Some(comments) => comments.clone(),
         None => return Ok(()),
     };
+    comments.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
 
     for comment in comments {
         if let Some(source) = &comment.source {
@@ -130,7 +121,7 @@ fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -
             save::<model::user::Model, _>(&elephantry, "user_pkey", user)?;
         }
 
-        save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)?;
+        save::<model::comment::Model, _>(&elephantry, "comment_pkey", &comment)?;
     }
 
     Ok(())

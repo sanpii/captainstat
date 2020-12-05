@@ -57,7 +57,7 @@ create table if not exists comment (
     approve bool,
     inserted_at timestamptz not null,
     is_reported bool not null,
-    reply_to_id integer references comment deferrable,
+    reply_to_id integer references comment,
     score integer,
     source_url text references source,
     statement_id integer not null,
