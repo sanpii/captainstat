@@ -30,12 +30,6 @@ impl elephantry::Structure for Structure {
     }
 
     fn columns() -> &'static [&'static str] {
-        &[
-            "statement_id",
-            "video_id",
-            "speaker_id",
-            "text",
-            "time",
-        ]
+        &["statement_id", "video_id", "speaker_id", "text", "time"]
     }
 }

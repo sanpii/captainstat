@@ -5,7 +5,12 @@ pub struct Data {
 
 impl Data {
     pub fn hash_id(&self) -> Vec<&String> {
-        self.data.videos.entries.iter().map(|x| &x.hash_id).collect()
+        self.data
+            .videos
+            .entries
+            .iter()
+            .map(|x| &x.hash_id)
+            .collect()
     }
 
     pub fn total_page(&self) -> u32 {
@@ -120,13 +125,9 @@ impl std::convert::TryInto<crate::model::video::Entity> for DebateVideo {
             hash_id: self.hash_id,
             posted_at: self.posted_at.parse()?,
             is_partner: self.is_partner,
-            speaker_ids: self
-                .speakers
-                .iter()
-                .map(|x| x.id)
-                .collect(),
+            speaker_ids: self.speakers.iter().map(|x| x.id).collect(),
             thumbnail: self.thumbnail,
-           title: self.title,
+            title: self.title,
             youtube_id: self.youtube_id,
             language: self.language,
             url: self.url,
@@ -220,7 +221,10 @@ impl std::convert::TryInto<crate::model::comment::Entity> for Comment {
         let entity = crate::model::comment::Entity {
             comment_id: self.id,
             approve: self.approve,
-            inserted_at: chrono::DateTime::parse_from_str(&format!("{} +0000", self.inserted_at), "%Y-%m-%dT%H:%M:%S%.6f %z")?,
+            inserted_at: chrono::DateTime::parse_from_str(
+                &format!("{} +0000", self.inserted_at),
+                "%Y-%m-%dT%H:%M:%S%.6f %z",
+            )?,
             is_reported: self.is_reported,
             reply_to_id: self.reply_to_id,
             score: self.score,
@@ -280,7 +284,10 @@ impl std::convert::TryInto<crate::model::user::Entity> for User {
             mini_picture_url: self.mini_picture_url,
             name: self.name,
             picture_url: self.picture_url,
-            registered_at: chrono::DateTime::parse_from_str(&format!("{} +0000", self.registered_at), "%Y-%m-%dT%H:%M:%S%.6f %z")?,
+            registered_at: chrono::DateTime::parse_from_str(
+                &format!("{} +0000", self.registered_at),
+                "%Y-%m-%dT%H:%M:%S%.6f %z",
+            )?,
             reputation: self.reputation,
             speaker_id: self.speaker_id,
             username: self.username,

@@ -29,11 +29,6 @@ impl elephantry::Structure for Structure {
     }
 
     fn columns() -> &'static [&'static str] {
-        &[
-            "url",
-            "language",
-            "site_name",
-            "title",
-        ]
+        &["url", "language", "site_name", "title"]
     }
 }
