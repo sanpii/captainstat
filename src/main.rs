@@ -13,82 +13,78 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
 
     let token = std::env::var("TOKEN").expect("Missing TOKEN env variable");
-    let data = get_data(&token)?;
 
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let elephantry = elephantry::Pool::new(&database_url)?;
 
-    for ref hash_id in data.hash_id() {
-        let debates = get_debates(&hash_id, &token)?;
-        let video = match debates.video() {
-            Some(video) => video,
-            None => continue,
-        };
+    let mut page = 1;
 
-        if let Err(err) = save::<model::video::Model, _>(&elephantry, "video_pkey", video) {
-            log::error!("Unable to save video: {}", err);
-        }
+    loop {
+        let data = get_data(&token, page)?;
 
-        for speaker in &video.speakers {
-            if let Err(err) = save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)
-            {
-                log::error!("Unable to save speaker: {}", err);
+        log::info!("Fetching page {}/{}", page, data.total_page());
+
+        for ref hash_id in data.hash_id() {
+            let debates = get_debates(&hash_id, &token)?;
+            let video = match debates.video() {
+                Some(video) => video,
+                None => continue,
+            };
+
+            save::<model::video::Model, _>(&elephantry, "video_pkey", video)?;
+
+            for speaker in &video.speakers {
+                save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)?;
             }
-        }
 
-        let statements = get_statements(hash_id, &token)?;
-        let statements = match statements.statements() {
-            Some(statements) => statements,
-            None => continue,
-        };
+            let statements = get_statements(hash_id, &token)?;
+            let statements = match statements.statements() {
+                Some(statements) => statements,
+                None => continue,
+            };
 
-        for statement in statements {
-            if let Err(err) = save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)
-            {
-                log::error!("Unable to save statement: {}", err);
+            for statement in statements {
+                save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)?;
             }
-        }
 
-        let comments = get_comments(&hash_id, &token)?;
-        let comments = match comments.comments() {
-            Some(comments) => comments,
-            None => continue,
-        };
+            let comments = get_comments(&hash_id, &token)?;
+            let comments = match comments.comments() {
+                Some(comments) => comments,
+                None => continue,
+            };
 
-        elephantry.transaction().start()?;
-        elephantry.transaction().set_deferrable(
-            Some(vec!["comment_reply_to_id_fkey"]),
-            elephantry::transaction::Constraints::Deferred,
-        )?;
+            elephantry.transaction().start()?;
+            elephantry.transaction().set_deferrable(
+                Some(vec!["comment_reply_to_id_fkey"]),
+                elephantry::transaction::Constraints::Deferred,
+            )?;
 
-        for comment in comments {
-            if let Some(source) = &comment.source {
-                if let Err(err) = save::<model::source::Model, _>(&elephantry, "source_pkey", source)
-                {
-                    log::error!("Unable to save source: {}", err);
+            for comment in comments {
+                if let Some(source) = &comment.source {
+                    save::<model::source::Model, _>(&elephantry, "source_pkey", source)?;
                 }
-            }
 
-            if let Some(user) = &comment.user {
-                if let Err(err) = save::<model::user::Model, _>(&elephantry, "user_pkey", user)
-                {
-                    log::error!("Unable to save user: {}", err);
+                if let Some(user) = &comment.user {
+                    save::<model::user::Model, _>(&elephantry, "user_pkey", user)?;
                 }
+
+                save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)?;
             }
 
-            if let Err(err) = save::<model::comment::Model, _>(&elephantry, "comment_pkey", comment)
-            {
-                log::error!("Unable to save comment: {}", err);
-            }
+            elephantry.transaction().commit()?;
         }
 
-        elephantry.transaction().commit()?;
+        if page == data.total_page() {
+            break;
+        } else {
+            page += 1;
+        }
     }
 
     Ok(())
 }
 
-fn get_data(token: &str) -> Result<Data> {
+fn get_data(token: &str, page: u32) -> Result<Data> {
     let query = serde_json::json!({
         "operationName" : "VideosIndex",
         "query" : "query VideosIndex($offset: Int! = 1, $limit: Int! = 16, $filters: VideoFilter = {}) {
@@ -104,8 +100,8 @@ fn get_data(token: &str) -> Result<Data> {
         }",
         "variables" : {
             "filters" : {},
-            "limit" : 4,
-            "offset" : 1
+            "limit" : 16,
+            "offset" : page,
         }
     });
 

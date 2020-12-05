@@ -7,6 +7,10 @@ impl Data {
     pub fn hash_id(&self) -> Vec<&String> {
         self.data.videos.entries.iter().map(|x| &x.hash_id).collect()
     }
+
+    pub fn total_page(&self) -> u32 {
+        self.data.videos.total_pages
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -15,7 +19,10 @@ pub struct Videos {
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Entries {
+    pub total_pages: u32,
+    pub page_number: u32,
     pub entries: Vec<Video>,
 }
 
