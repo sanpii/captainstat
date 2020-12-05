@@ -102,7 +102,10 @@ fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -
     };
 
     for statement in statements {
-        save::<model::statement::Model, _>(&elephantry, "statement_pkey", statement)?;
+        let mut st = statement.clone();
+        st.video_id = video.id;
+
+        save::<model::statement::Model, _>(&elephantry, "statement_pkey", &st)?;
     }
 
     let comments = get_comments(&hash_id, token)?;

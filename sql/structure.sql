@@ -29,6 +29,7 @@ create table if not exists video (
 create table if not exists statement (
     statement_id integer primary key,
     speaker_id integer references speaker,
+    video_id integer references video,
     text text not null,
     time integer not null
 );
@@ -54,13 +55,14 @@ create table if not exists "user" (
 
 create table if not exists comment (
     comment_id integer primary key,
+    video_id integer references video,
     approve bool,
     inserted_at timestamptz not null,
     is_reported bool not null,
     reply_to_id integer references comment,
     score integer,
     source_url text references source,
-    statement_id integer not null,
+    statement_id integer not null references statement,
     text text,
     user_id integer references "user"
 );

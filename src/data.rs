@@ -172,6 +172,8 @@ impl std::convert::TryInto<crate::model::speaker::Entity> for Speaker {
 pub struct Statement {
     pub id: i32,
     pub speaker_id: Option<i32>,
+    #[serde(skip)]
+    pub video_id: i32,
     pub text: String,
     pub time: i32,
 }
@@ -183,6 +185,7 @@ impl std::convert::TryInto<crate::model::statement::Entity> for Statement {
         let entity = crate::model::statement::Entity {
             statement_id: self.id,
             speaker_id: self.speaker_id,
+            video_id: self.video_id,
             text: self.text,
             time: self.time,
         };
