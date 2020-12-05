@@ -1,0 +1,11 @@
+{% macro card(label, url, icon) %}
+    <div class="card">
+        <div class="card-body">
+            <a href="{{ url }}" title="{{ label }}">
+                <svg width="256" height="256" fill="currentColor">
+                    <use xlink:href="/static/lib/bootstrap-icons/bootstrap-icons.svg#{{ icon }}"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+{% endmacro card %}

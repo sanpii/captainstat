@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card-deck">
+    {{ macros::card(label="Statistiques par vidéos", url="/videos", icon="play-fill") }}
+    {{ macros::card(label="Statistiques par intervenant·e·s", url="/speakers", icon="person-fill") }}
+</div>
+{% endblock %}
