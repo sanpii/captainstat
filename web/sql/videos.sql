@@ -1,5 +1,5 @@
 with v as (
-    select video.title, video.thumbnail, video.posted_at,
+    select video.title, video.thumbnail as picture, video.posted_at,
             'https://captainfact.io/videos/' || video.hash_id as url,
             count(1) filter (where comment.approve) as nb_approves,
             count(1) filter (where not comment.approve) as nb_refutes,
@@ -10,7 +10,7 @@ with v as (
         left join comment using(statement_id)
         group by video.title, video.thumbnail, video.hash_id, video.posted_at
 )
-select title, thumbnail, url, nb_approves, nb_refutes, nb_comments,
+select title, picture, url, nb_approves, nb_refutes, nb_comments,
         round(nb_approves::numeric / total * 100.0)::float4 as percent_approves,
         round(nb_refutes::numeric / total * 100.0)::float4 as percent_refutes,
         round(nb_comments::numeric / total * 100.0)::float4 as percent_comments

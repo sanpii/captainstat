@@ -1,5 +1,6 @@
 with s as (
-    select speaker.full_name, 'https://captainfact.io/s/' || speaker.speaker_id as url, speaker.picture,
+    select speaker.full_name as title, speaker.picture,
+            'https://captainfact.io/s/' || speaker.speaker_id as url,
             count(distinct statement.statement_id) as count_statement,
             count(1) filter (where comment.approve) as nb_approves,
             count(1) filter (where not comment.approve) as nb_refutes,
@@ -11,10 +12,10 @@ with s as (
     left join comment using(statement_id)
     group by speaker.full_name, speaker.speaker_id, speaker.picture
 )
-select full_name, url, picture, nb_approves, nb_refutes, nb_comments,
+select title, url, picture, nb_approves, nb_refutes, nb_comments,
         round(nb_approves::numeric / total * 100.0)::float4 as percent_approves,
         round(nb_refutes::numeric / total * 100.0)::float4 as percent_refutes,
         round(nb_comments::numeric / total * 100.0)::float4 as percent_comments
     from s
-    order by full_name
+    order by title
     offset $* fetch first $* rows only
