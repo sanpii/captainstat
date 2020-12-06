@@ -48,6 +48,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(data)
             .service(index)
             .service(videos)
+            .service(speakers)
             .service(static_files)
     })
     .bind(&bind)?
@@ -86,6 +87,31 @@ async fn videos(
     context.insert("pager", &pager);
 
     let body = data.template.render("videos.html", &context)?;
+
+    let response = actix_web::HttpResponse::Ok()
+        .content_type("text/html")
+        .body(body);
+
+    Ok(response)
+}
+
+#[actix_web::get("/speakers")]
+async fn speakers(
+    request: actix_web::HttpRequest,
+    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
+) -> Result<actix_web::HttpResponse> {
+    let data: &AppData = request.app_data()
+        .unwrap();
+
+    let offset = ((pagination.page - 1) * pagination.limit) as u32;
+    let limit = pagination.limit as u32;
+    let speakers = data.elephantry.query::<Speaker>(include_str!("../sql/speakers.sql"), &[&offset, &limit])?;
+    let count = data.elephantry.query_one::<i64>("select count(*) from speaker", &[])?;
+    let pager = elephantry::Pager::new(speakers, count as usize, pagination.page, pagination.limit);
+    let mut context = tera::Context::new();
+    context.insert("pager", &pager);
+
+    let body = data.template.render("speakers.html", &context)?;
 
     let response = actix_web::HttpResponse::Ok()
         .content_type("text/html")
