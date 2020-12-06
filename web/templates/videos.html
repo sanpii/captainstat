@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row row-cols-4">
+        {% for video in pager.iterator %}
+        <div class="col mb-4">
+            <div class="card">
+                <img src="{{ video.thumbnail }}" class="card-img-top" />
+                <div class="card-body">
+                    <div class="progress card-title">
+                        <div
+                            class="progress-bar bg-success"
+                            role="progressbar"
+                            style="width: {{ video.percent_approves }}%"
+                            aria-valuenow="15"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            title="{{ video.nb_approves }} confirmations"
+                        ></div>
+                        <div
+                            class="progress-bar bg-danger"
+                            role="progressbar"
+                            style="width: {{ video.percent_refutes }}%"
+                            aria-valuenow="20"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            title="{{ video.nb_refutes }} réfutations"
+                        ></div>
+                        <div
+                            class="progress-bar bg-none"
+                            role="progressbar"
+                            style="width: {{ video.percent_comments }}%"
+                            aria-valuenow="20"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            title="{{ video.nb_comments }} commentaires"
+                        ></div>
+                    </div>
+                    <a href="{{ video.url }}" target="_blank">{{ video.title }}</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="d-flex justify-content-center mx-auto">
+            {{ pager(pager=pager) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -8,9 +8,20 @@ edition = "2018"
 actix-files = "0.4"
 actix-web = "3.3"
 dotenv = "0.15"
-elephantry = "1.3"
 log = "0.4"
 pretty_env_logger = "0.4"
 tera = "1.5"
 tera-hot = "0.2"
 thiserror = "1.0"
+
+[dependencies.elephantry]
+version = "1.3"
+features = ["serde-support"]
+
+[dependencies.elephantry-extras]
+version = "0.1"
+features = ["tera-pager"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]

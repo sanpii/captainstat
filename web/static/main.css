@@ -2,11 +2,19 @@ html, body, body main {
     height: 100%;
 }
 
-.container {
+.index {
+    height: 100%;
+}
+
+.index .container {
     display: flex;
     align-items: center;
     height: 100%;
     width: 100%;
+}
+
+.container {
+    padding-top: 60px;
 }
 
 .card-deck {
@@ -15,4 +23,8 @@ html, body, body main {
 
 a svg {
     color: lightgray;
+}
+
+.progress-bar.bg-none {
+    opacity: 0%;
 }

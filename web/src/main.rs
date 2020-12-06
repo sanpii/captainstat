@@ -1,7 +1,9 @@
 #![warn(rust_2018_idioms)]
 
+mod entities;
 mod errors;
 
+use entities::*;
 use errors::*;
 
 struct AppData {
@@ -23,7 +25,8 @@ async fn main() -> std::io::Result<()> {
     let port = std::env::var("LISTEN_PORT").expect("Missing LISTEN_IP env variable");
     let bind = format!("{}:{}", ip, port);
 
-    let template = tera_hot::Template::new(TEMPLATE_DIR);
+    let mut template = tera_hot::Template::new(TEMPLATE_DIR);
+    template.register_function("pager", elephantry_extras::tera::Pager);
     template.clone().watch();
 
     actix_web::HttpServer::new(move || {
@@ -44,6 +47,7 @@ async fn main() -> std::io::Result<()> {
             ))
             .app_data(data)
             .service(index)
+            .service(videos)
             .service(static_files)
     })
     .bind(&bind)?
@@ -57,6 +61,31 @@ async fn index(request: actix_web::HttpRequest) -> Result<actix_web::HttpRespons
         .unwrap();
 
     let body = data.template.render("index.html", &tera::Context::new())?;
+
+    let response = actix_web::HttpResponse::Ok()
+        .content_type("text/html")
+        .body(body);
+
+    Ok(response)
+}
+
+#[actix_web::get("/videos")]
+async fn videos(
+    request: actix_web::HttpRequest,
+    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
+) -> Result<actix_web::HttpResponse> {
+    let data: &AppData = request.app_data()
+        .unwrap();
+
+    let offset = ((pagination.page - 1) * pagination.limit) as u32;
+    let limit = pagination.limit as u32;
+    let videos = data.elephantry.query::<Video>(include_str!("../sql/videos.sql"), &[&offset, &limit])?;
+    let count = data.elephantry.query_one::<i64>("select count(*) from video", &[])?;
+    let pager = elephantry::Pager::new(videos, count as usize, pagination.page, pagination.limit);
+    let mut context = tera::Context::new();
+    context.insert("pager", &pager);
+
+    let body = data.template.render("videos.html", &context)?;
 
     let response = actix_web::HttpResponse::Ok()
         .content_type("text/html")
