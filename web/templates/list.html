@@ -9,9 +9,7 @@
                 {% if entity.picture %}
                     <img src="{{ entity.picture }}" class="card-img-top" />
                 {% else %}
-                    <svg width="256" height="256" fill="currentColor">
-                        <use xlink:href="/static/lib/bootstrap-icons/bootstrap-icons.svg#person"/>
-                    </svg>
+                    {{ macros::svg(icon="person", size=256) }}
                 {% endif %}
                 <div class="card-body">
                     <div class="progress card-title">

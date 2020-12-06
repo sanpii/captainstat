@@ -1,10 +1,14 @@
+{% macro svg(icon, size) %}
+    <svg width="{{ size }}" height="{{ size }}" fill="currentColor">
+        <use xlink:href="/static/lib/bootstrap-icons/bootstrap-icons.svg#{{ icon }}"/>
+    </svg>
+{% endmacro svg %}
+
 {% macro card(label, url, icon) %}
     <div class="card">
         <div class="card-body">
             <a href="{{ url }}" title="{{ label }}">
-                <svg width="256" height="256" fill="currentColor">
-                    <use xlink:href="/static/lib/bootstrap-icons/bootstrap-icons.svg#{{ icon }}"/>
-                </svg>
+                {{ self::svg(icon=icon, size=256) }}
             </a>
         </div>
     </div>
