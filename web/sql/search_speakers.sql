@@ -11,9 +11,9 @@ score as (
         comment.comment_id
     from comment
 ),
-v as (
-    select video.title, video.thumbnail as picture, video.posted_at,
-            'https://captainfact.io/videos/' || video.hash_id as url,
+s as (
+    select speaker.full_name as title, speaker.picture,
+            'https://captainfact.io/s/' || speaker.speaker_id as url,
             count(comment.comment_id) filter (where comment.approve) as nb_approves,
             count(comment.comment_id) filter (where not comment.approve) as nb_refutes,
             count(comment.comment_id) filter (where comment.approve is null) as nb_comments,
@@ -21,16 +21,18 @@ v as (
             sum(score.score) filter (where not comment.approve) as score_refutes,
             sum(score.score) filter (where comment.approve is null) as score_comments,
             sum(score.score) as total
-        from video
-        left join statement using(video_id)
+        from speaker
+        left join statement using(speaker_id)
+        left join video using(video_id)
         left join comment using(statement_id)
         left join score using(comment_id)
         where comment.reply_to_id is null
-        group by video.title, video.thumbnail, video.hash_id, video.posted_at
+        group by speaker.full_name, speaker.speaker_id, speaker.picture
 )
 select title, picture, url, nb_approves, nb_refutes, nb_comments, total,
         round(score_approves / total * 100.0, 2)::float4 as percent_approves,
         round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
         round(score_comments / total * 100.0, 2)::float4 as percent_comments
-    from v
-    order by posted_at desc
+    from s
+    where title ~* $*
+    order by title

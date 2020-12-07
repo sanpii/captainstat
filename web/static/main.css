@@ -28,3 +28,25 @@ svg {
 .progress-bar.bg-none {
     opacity: 0%;
 }
+
+.form-inline {
+    margin: 0;
+    width: 100%;
+}
+
+.form-inline input {
+    flex: 1 1 auto;
+    max-width: 100%;
+}
+
+.form-control-dark {
+    margin: 0 2rem;
+    color: #fff;
+    background-color: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .1);
+}
+
+.alert {
+    width: 100%;
+    margin: 20px auto;
+}

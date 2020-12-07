@@ -35,4 +35,3 @@ select title, url, picture, nb_approves, nb_refutes, nb_comments,
         round(score_comments / total * 100.0, 2)::float4 as percent_comments
     from s
     order by title
-    offset $* fetch first $* rows only

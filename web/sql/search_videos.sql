@@ -33,4 +33,5 @@ select title, picture, url, nb_approves, nb_refutes, nb_comments, total,
         round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
         round(score_comments / total * 100.0, 2)::float4 as percent_comments
     from v
+    where title ~* $*
     order by posted_at desc

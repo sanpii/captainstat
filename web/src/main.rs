@@ -23,7 +23,14 @@ pub struct Entity {
     nb_comments: i64,
 }
 
-struct AppData {
+#[derive(serde::Deserialize)]
+struct Query {
+    q: String,
+    #[serde(flatten)]
+    pagination: elephantry_extras::Pagination,
+}
+
+struct Data {
     template: tera_hot::Template,
     elephantry: elephantry::Pool,
 }
@@ -50,7 +57,7 @@ async fn main() -> std::io::Result<()> {
         let elephantry =
             elephantry::Pool::new(&database_url).expect("Unable to connect to postgresql");
 
-        let data = AppData {
+        let data = Data {
             template: template.clone(),
             elephantry,
         };
@@ -62,10 +69,12 @@ async fn main() -> std::io::Result<()> {
             .wrap(actix_web::middleware::NormalizePath::new(
                 actix_web::middleware::normalize::TrailingSlash::Trim,
             ))
-            .app_data(data)
+            .data(data)
             .service(index)
             .service(videos)
             .service(speakers)
+            .service(search_videos)
+            .service(search_speakers)
             .service(static_files)
     })
     .bind(&bind)?
@@ -74,9 +83,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[actix_web::get("/")]
-async fn index(request: actix_web::HttpRequest) -> Result<actix_web::HttpResponse> {
-    let data: &AppData = request.app_data().unwrap();
-
+async fn index(data: actix_web::web::Data<Data>) -> Result<actix_web::HttpResponse> {
     let body = data.template.render("index.html", &tera::Context::new())?;
 
     let response = actix_web::HttpResponse::Ok()
@@ -88,39 +95,73 @@ async fn index(request: actix_web::HttpRequest) -> Result<actix_web::HttpRespons
 
 #[actix_web::get("/videos")]
 async fn videos(
-    request: actix_web::HttpRequest,
+    data: actix_web::web::Data<Data>,
     pagination: actix_web::web::Query<elephantry_extras::Pagination>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/videos.sql");
-    let sql_count = "select count(*) from video";
-    list(sql, sql_count, &request, &pagination).await
+    list("/videos", sql, None, &data, &pagination).await
 }
 
 #[actix_web::get("/speakers")]
 async fn speakers(
-    request: actix_web::HttpRequest,
+    data: actix_web::web::Data<Data>,
     pagination: actix_web::web::Query<elephantry_extras::Pagination>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/speakers.sql");
-    let sql_count = "select count(*) from speaker";
-    list(sql, sql_count, &request, &pagination).await
+    list("/speakers", sql, None, &data, &pagination).await
+}
+
+#[actix_web::get("/search/videos")]
+async fn search_videos(
+    data: actix_web::web::Data<Data>,
+    query: actix_web::web::Query<Query>,
+) -> Result<actix_web::HttpResponse> {
+    let sql = include_str!("../sql/search_videos.sql");
+    list(&format!("/search/videos?q={}", query.q), sql, Some(&query.q), &data, &query.pagination).await
+}
+
+#[actix_web::get("/search/speakers")]
+async fn search_speakers(
+    data: actix_web::web::Data<Data>,
+    query: actix_web::web::Query<Query>,
+) -> Result<actix_web::HttpResponse> {
+    let sql = include_str!("../sql/search_speakers.sql");
+    list(&format!("/search/speakers?q={}", query.q), sql, Some(&query.q), &data, &query.pagination).await
 }
 
 async fn list(
+    base_url: &str,
     sql: &str,
-    sql_count: &str,
-    request: &actix_web::HttpRequest,
-    pagination: &actix_web::web::Query<elephantry_extras::Pagination>,
+    q: Option<&str>,
+    data: &Data,
+    pagination: &elephantry_extras::Pagination,
 ) -> Result<actix_web::HttpResponse> {
-    let data: &AppData = request.app_data().unwrap();
+    let paginate_sql = format!(
+        "{} {}",
+        sql,
+        pagination.to_sql(),
+    );
 
-    let offset = ((pagination.page - 1) * pagination.limit) as u32;
-    let limit = pagination.limit as u32;
-    let entities = data.elephantry.query::<Entity>(sql, &[&offset, &limit])?;
-    let count = data.elephantry.query_one::<i64>(sql_count, &[])?;
+    let sql_count = format!(
+        "with query as ({}) select count(1) from query",
+        sql,
+    );
+
+    let params = if q.is_some() {
+        vec![&q as &dyn elephantry::ToSql]
+    } else {
+        Vec::new()
+    };
+    let entities = data.elephantry.query::<Entity>(&paginate_sql, &params)?;
+    let count = data.elephantry.query_one::<i64>(&sql_count, &params)?;
     let pager = elephantry::Pager::new(entities, count as usize, pagination.page, pagination.limit);
+
     let mut context = tera::Context::new();
     context.insert("pager", &pager);
+    context.insert("base_url", &base_url);
+    if q.is_some() {
+        context.insert("q", &q);
+    }
 
     let body = data.template.render("list.html", &context)?;
 
