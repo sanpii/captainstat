@@ -9,11 +9,17 @@ pub struct Entity {
     title: String,
     url: String,
     picture: Option<String>,
+    #[elephantry(default)]
     percent_approves: f32,
+    #[elephantry(default)]
     percent_refutes: f32,
+    #[elephantry(default)]
     percent_comments: f32,
+    #[elephantry(default)]
     nb_approves: i64,
+    #[elephantry(default)]
     nb_refutes: i64,
+    #[elephantry(default)]
     nb_comments: i64,
 }
 
