@@ -136,6 +136,17 @@ async fn list(
     data: &Data,
     pagination: &elephantry_extras::Pagination,
 ) -> Result<actix_web::HttpResponse> {
+    let pager = query(&data.elephantry, sql, q, pagination)?;
+
+    render(&data.template, &pager, base_url, q)
+}
+
+fn query(
+    elephantry: &elephantry::Connection,
+    sql: &str,
+    q: Option<&str>,
+    pagination: &elephantry_extras::Pagination,
+) -> Result<elephantry::Pager<Entity>> {
     let paginate_sql = format!(
         "{} {}",
         sql,
@@ -152,10 +163,20 @@ async fn list(
     } else {
         Vec::new()
     };
-    let entities = data.elephantry.query::<Entity>(&paginate_sql, &params)?;
-    let count = data.elephantry.query_one::<i64>(&sql_count, &params)?;
+
+    let entities = elephantry.query::<Entity>(&paginate_sql, &params)?;
+    let count = elephantry.query_one::<i64>(&sql_count, &params)?;
+
     let pager = elephantry::Pager::new(entities, count as usize, pagination.page, pagination.limit);
 
+    Ok(pager)
+}
+
+fn render(
+    template: &tera_hot::Template,
+    pager: &elephantry::Pager<Entity>,
+    base_url: &str, q: Option<&str>,
+) -> Result<actix_web::HttpResponse> {
     let mut context = tera::Context::new();
     context.insert("pager", &pager);
     context.insert("base_url", &base_url);
@@ -163,7 +184,7 @@ async fn list(
         context.insert("q", &q);
     }
 
-    let body = data.template.render("list.html", &context)?;
+    let body = template.render("list.html", &context)?;
 
     let response = actix_web::HttpResponse::Ok()
         .content_type("text/html")
