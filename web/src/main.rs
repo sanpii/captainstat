@@ -116,8 +116,8 @@ async fn search_videos(
     data: actix_web::web::Data<Data>,
     query: actix_web::web::Query<Query>,
 ) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.video where title ~* $*";
-    list(&format!("/search/videos?q={}", query.q), sql, Some(&query.q), &data, &query.pagination)
+    let sql = search_query("video");
+    list(&format!("/search/videos?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
 }
 
 #[actix_web::get("/search/speakers")]
@@ -125,8 +125,18 @@ async fn search_speakers(
     data: actix_web::web::Data<Data>,
     query: actix_web::web::Query<Query>,
 ) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.speaker where title ~* $*";
-    list(&format!("/search/speakers?q={}", query.q), sql, Some(&query.q), &data, &query.pagination)
+    let sql = search_query("speaker");
+    list(&format!("/search/speakers?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
+}
+
+fn search_query(ty: &str) -> String {
+    format!("
+select view.{ty}.*
+    from websearch_to_tsquery('french', $*) query,
+        view.{ty}
+    where view.{ty}.document @@ query
+    order by ts_rank_cd(view.{ty}.document, query) desc
+", ty=ty)
 }
 
 fn list(

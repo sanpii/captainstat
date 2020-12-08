@@ -7,8 +7,11 @@ create table if not exists speaker (
     country text,
     picture text,
     title text,
-    wikidata_item_id text
+    wikidata_item_id text,
+    document tsvector generated always as (to_tsvector('french', full_name)) stored
 );
+
+create index if not exists speaker_document on speaker using gin(document);
 
 create table if not exists video (
     video_id integer primary key,
@@ -23,8 +26,11 @@ create table if not exists video (
     provider text not null,
     provider_id text,
     url text not null,
-    youtube_offset integer not null
+    youtube_offset integer not null,
+    document tsvector generated always as (to_tsvector('french', title)) stored
 );
+
+create index if not exists video_document on video using gin(document);
 
 create table if not exists statement (
     statement_id integer primary key,
@@ -94,7 +100,7 @@ create or replace view view.comment as
 
 create or replace view view.video as
     with v as (
-        select video.title, video.thumbnail as picture, video.posted_at,
+        select video.video_id, video.title, video.thumbnail as picture, video.posted_at, video.document,
                 'https://captainfact.io/videos/' || video.hash_id as url,
                 count(comment.comment_id) filter (where comment.approve) as nb_approves,
                 count(comment.comment_id) filter (where not comment.approve) as nb_refutes,
@@ -106,9 +112,9 @@ create or replace view view.video as
             from video
             left join statement using(video_id)
             left join view.comment comment using(statement_id)
-            group by video.title, video.thumbnail, video.hash_id, video.posted_at
+            group by video.video_id, video.title, video.thumbnail, video.hash_id, video.posted_at
     )
-    select title, picture, url, nb_approves, nb_refutes, nb_comments, total,
+    select video_id, title, picture, url, nb_approves, nb_refutes, nb_comments, document,
             round(score_approves / total * 100.0, 2)::float4 as percent_approves,
             round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
             round(score_comments / total * 100.0, 2)::float4 as percent_comments
@@ -117,7 +123,7 @@ create or replace view view.video as
 
 create or replace view view.speaker as
     with s as (
-        select speaker.full_name as title, speaker.picture,
+        select speaker.speaker_id, speaker.full_name as title, speaker.picture, speaker.document,
                 'https://captainfact.io/s/' || speaker.speaker_id as url,
                 count(comment.comment_id) filter (where comment.approve) as nb_approves,
                 count(comment.comment_id) filter (where not comment.approve) as nb_refutes,
@@ -130,9 +136,9 @@ create or replace view view.speaker as
             left join statement using(speaker_id)
             left join video using(video_id)
             left join view.comment comment using(statement_id)
-            group by speaker.full_name, speaker.speaker_id, speaker.picture
+            group by speaker.speaker_id, speaker.full_name, speaker.speaker_id, speaker.picture
     )
-    select title, url, picture, nb_approves, nb_refutes, nb_comments,
+    select speaker_id, title, url, picture, nb_approves, nb_refutes, nb_comments, document,
             round(score_approves / total * 100.0, 2)::float4 as percent_approves,
             round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
             round(score_comments / total * 100.0, 2)::float4 as percent_comments
