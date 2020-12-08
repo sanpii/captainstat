@@ -99,7 +99,7 @@ async fn videos(
     pagination: actix_web::web::Query<elephantry_extras::Pagination>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/videos.sql");
-    list("/videos", sql, None, &data, &pagination).await
+    list("/videos", sql, None, &data, &pagination)
 }
 
 #[actix_web::get("/speakers")]
@@ -108,7 +108,7 @@ async fn speakers(
     pagination: actix_web::web::Query<elephantry_extras::Pagination>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/speakers.sql");
-    list("/speakers", sql, None, &data, &pagination).await
+    list("/speakers", sql, None, &data, &pagination)
 }
 
 #[actix_web::get("/search/videos")]
@@ -117,7 +117,7 @@ async fn search_videos(
     query: actix_web::web::Query<Query>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/search_videos.sql");
-    list(&format!("/search/videos?q={}", query.q), sql, Some(&query.q), &data, &query.pagination).await
+    list(&format!("/search/videos?q={}", query.q), sql, Some(&query.q), &data, &query.pagination)
 }
 
 #[actix_web::get("/search/speakers")]
@@ -126,10 +126,10 @@ async fn search_speakers(
     query: actix_web::web::Query<Query>,
 ) -> Result<actix_web::HttpResponse> {
     let sql = include_str!("../sql/search_speakers.sql");
-    list(&format!("/search/speakers?q={}", query.q), sql, Some(&query.q), &data, &query.pagination).await
+    list(&format!("/search/speakers?q={}", query.q), sql, Some(&query.q), &data, &query.pagination)
 }
 
-async fn list(
+fn list(
     base_url: &str,
     sql: &str,
     q: Option<&str>,
