@@ -34,6 +34,9 @@ create table if not exists statement (
     time integer not null
 );
 
+create index if not exists statement_speaker_id on statement(speaker_id);
+create index if not exists statement_video_id on statement(video_id, statement_id);
+
 create table if not exists source (
     url text primary key,
     language text,
@@ -53,9 +56,10 @@ create table if not exists "user" (
     username text not null
 );
 
+create index if not exists user_speaker_id on "user"(speaker_id);
+
 create table if not exists comment (
     comment_id integer primary key,
-    video_id integer references video,
     approve bool,
     inserted_at timestamptz not null,
     is_reported bool not null,
@@ -66,6 +70,11 @@ create table if not exists comment (
     text text,
     user_id integer references "user"
 );
+
+create index if not exists comment_reply_to_id on comment((1)) where reply_to_id is null;
+create index if not exists comment_source_url on comment(source_url);
+create index if not exists comment_statement_id on comment(statement_id);
+create index if not exists comment_user_id on comment(user_id);
 
 create schema if not exists view;
 
