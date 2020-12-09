@@ -71,12 +71,12 @@ async fn main() -> std::io::Result<()> {
             ))
             .data(data)
             .service(index)
-            .service(videos)
-            .service(speakers)
-            .service(users)
-            .service(search_videos)
-            .service(search_speakers)
-            .service(search_users)
+            .service(video)
+            .service(speaker)
+            .service(user)
+            .service(search_video)
+            .service(search_speaker)
+            .service(search_user)
             .service(static_files)
     })
     .bind(&bind)?
@@ -95,59 +95,31 @@ async fn index(data: actix_web::web::Data<Data>) -> Result<actix_web::HttpRespon
     Ok(response)
 }
 
-#[actix_web::get("/videos")]
-async fn videos(
-    data: actix_web::web::Data<Data>,
-    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.video";
-    list("/videos", sql, None, &data, &pagination)
+macro_rules! route {
+    ($list_name:ident, $list_url:literal, $search_name:ident, $search_url:literal) => {
+        #[actix_web::get($list_url)]
+        async fn $list_name (
+            data: actix_web::web::Data<Data>,
+            pagination: actix_web::web::Query<elephantry_extras::Pagination>,
+        ) -> Result<actix_web::HttpResponse> {
+            let sql = format!("select * from view.{}", stringify!($list_name));
+            $crate::list($list_url, &sql, None, &data, &pagination)
+        }
+
+        #[actix_web::get($search_url)]
+        async fn $search_name(
+            data: actix_web::web::Data<Data>,
+            query: actix_web::web::Query<Query>,
+        ) -> Result<actix_web::HttpResponse> {
+            let sql = $crate::search_query(stringify!($list_name));
+            list(&format!("{}?q={}", $search_url, query.q), &sql, Some(&query.q), &data, &query.pagination)
+        }
+    }
 }
 
-#[actix_web::get("/search/videos")]
-async fn search_videos(
-    data: actix_web::web::Data<Data>,
-    query: actix_web::web::Query<Query>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = search_query("video");
-    list(&format!("/search/videos?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
-}
-
-#[actix_web::get("/speakers")]
-async fn speakers(
-    data: actix_web::web::Data<Data>,
-    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.speaker";
-    list("/speakers", sql, None, &data, &pagination)
-}
-
-#[actix_web::get("/search/speakers")]
-async fn search_speakers(
-    data: actix_web::web::Data<Data>,
-    query: actix_web::web::Query<Query>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = search_query("speaker");
-    list(&format!("/search/speakers?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
-}
-
-#[actix_web::get("/users")]
-async fn users(
-    data: actix_web::web::Data<Data>,
-    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.user";
-    list("/users", sql, None, &data, &pagination)
-}
-
-#[actix_web::get("/search/users")]
-async fn search_users(
-    data: actix_web::web::Data<Data>,
-    query: actix_web::web::Query<Query>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = search_query("user");
-    list(&format!("/search/user?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
-}
+route!(video, "/videos", search_video, "/search/videos");
+route!(speaker, "/speakers", search_speaker, "/search/speakers");
+route!(user, "/users", search_user, "/search/users");
 
 fn search_query(ty: &str) -> String {
     format!("
