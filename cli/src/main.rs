@@ -24,9 +24,11 @@ fn main() -> Result<()> {
 
     let opt = Opt::from_args();
 
-    let token = std::env::var("TOKEN").expect("Missing TOKEN env variable");
+    let email = env("LOGIN_EMAIL")?;
+    let password = env("LOGIN_PASSWORD")?;
+    let token = login(&email, &password)?;
 
-    let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
+    let database_url = env("DATABASE_URL")?;
     let elephantry = elephantry::Pool::new(&database_url)?;
 
     let url = format!(
@@ -62,6 +64,25 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn env(name: &str) -> Result<String> {
+    std::env::var(name).map_err(|_| Error::Env(name.to_string()))
+}
+
+fn login(email: &str, password: &str) -> Result<String> {
+    let query = serde_json::json!({
+        email: email,
+        password: password,
+    });
+
+    let response: serde_json::Value =
+        attohttpc::post("https://api.captainfact.io/auth/identity/callback")
+            .json(&query)?
+            .send()?
+            .json()?;
+
+    Ok(response["user"]["token"].to_string())
 }
 
 fn get_summary(token: &str, page: u32) -> Result<Data> {

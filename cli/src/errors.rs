@@ -8,6 +8,9 @@ pub enum Error {
     #[error("{0}")]
     Date(#[from] chrono::ParseError),
 
+    #[error("Missing {0} environment variable")]
+    Env(String),
+
     #[error("{0}")]
     Integer(#[from] std::num::ParseIntError),
 
