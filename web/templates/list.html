@@ -2,6 +2,19 @@
 
 {% block content %}
 <div class="container">
+    <div class="alert alert-info">
+        {{ macros::svg(icon="info-circle", size=32) }}
+        Voici un aperçu rapide, que j’espère le moins biaisé possible, du
+        contenu de la plateforme collaborative
+        <a href="https://captainfact.io/" target="_blank">CaptainFact</a>,
+        avec :
+        <ul>
+            <li>en <span class="text-success"><b>vert</b></span> la somme les scores des confirmations ;</li>
+            <li>en <span class="text-danger"><b>rouge</b></span> la somme des scores des réfutations ;</li>
+            <li>en <span class="text-secondary"><b>gris</b></span> la somme des scores des commentaires.</li>
+        </ul>
+        Au survol, s’affiche le nombres de commentaires pour chaque catégorie.
+    </div>
     <div class="row row-cols-4">
         {% if pager.count == 0 %}
             <div class="alert alert-info">Aucun élément trouvé</div>
