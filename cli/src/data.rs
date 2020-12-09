@@ -80,8 +80,9 @@ impl Debates {
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Debate {
-    String(String),
+    String(Option<String>),
     Response(Response),
+    PresenteState(PresenteState),
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]
@@ -96,6 +97,17 @@ pub enum Content {
     Video(DebateVideo),
     Statements(Vec<Statement>),
     Comments(Comments),
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct PresenteState {
+    viewers: Count,
+    users: Count,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Count {
+    count: usize,
 }
 
 #[derive(Clone, Debug, serde::Deserialize)]

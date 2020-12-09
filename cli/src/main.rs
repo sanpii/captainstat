@@ -7,6 +7,8 @@ use errors::*;
 use std::convert::TryInto;
 use structopt::StructOpt;
 
+type Websocket = tungstenite::WebSocket<tungstenite::client::AutoStream>;
+
 #[derive(StructOpt)]
 struct Opt {
     video_hash_id: Option<String>,
@@ -27,19 +29,26 @@ fn main() -> Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let elephantry = elephantry::Pool::new(&database_url)?;
 
+    let url = format!(
+        "wss://api.captainfact.io/socket/websocket?token={}&vsn=2.0.0",
+        token
+    );
+
+    let (mut websocket, _) = tungstenite::connect(&url)?;
+
     if let Some(video_hash_id) = opt.video_hash_id {
-        save_video(&elephantry, &token, &video_hash_id)?;
+        save_video(&elephantry, &mut websocket, &video_hash_id)?;
     } else {
         let mut page = 1;
 
         loop {
-            let data = get_data(&token, page)?;
+            let data = get_summary(&token, page)?;
             let limit = opt.limit.unwrap_or_else(|| data.total_page());
 
             log::info!("Fetching page {}/{}", page, limit);
 
             for ref hash_id in data.hash_id() {
-                if save_video(&elephantry, &token, hash_id).is_err() {
+                if save_video(&elephantry, &mut websocket, hash_id).is_err() {
                     log::error!("Unable to save video '{}'", hash_id);
                 }
             }
@@ -55,7 +64,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn get_data(token: &str, page: u32) -> Result<Data> {
+fn get_summary(token: &str, page: u32) -> Result<Data> {
     let query = serde_json::json!({
         "operationName" : "VideosIndex",
         "query" : "query VideosIndex($offset: Int! = 1, $limit: Int! = 16, $filters: VideoFilter = {}) {
@@ -85,8 +94,8 @@ fn get_data(token: &str, page: u32) -> Result<Data> {
     Ok(response)
 }
 
-fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -> Result<()> {
-    let debates = get_debates(&hash_id, token)?;
+fn save_video(elephantry: &elephantry::Connection, websocket: &mut Websocket, hash_id: &str) -> Result<()> {
+    let debates = get_debates(websocket, &hash_id)?;
     let video = match debates.video() {
         Some(video) => video,
         None => return Ok(()),
@@ -98,7 +107,7 @@ fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -
         save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)?;
     }
 
-    let statements = get_statements(hash_id, token)?;
+    let statements = get_statements(websocket, hash_id)?;
     let statements = match statements.statements() {
         Some(statements) => statements,
         None => return Ok(()),
@@ -111,7 +120,7 @@ fn save_video(elephantry: &elephantry::Connection, token: &str, hash_id: &str) -
         save::<model::statement::Model, _>(&elephantry, "statement_pkey", &st)?;
     }
 
-    let comments = get_comments(&hash_id, token)?;
+    let comments = get_comments(websocket, &hash_id)?;
     let mut comments = match comments.comments() {
         Some(comments) => comments.clone(),
         None => return Ok(()),
@@ -145,35 +154,38 @@ where
     Ok(())
 }
 
-fn get_debates(id: &str, token: &str) -> Result<data::Debates> {
+fn get_debates(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
     let request = format!(r#"["1","1","video_debate:{}","phx_join",{{}}]"#, id);
 
-    websocket(request, token)
+    get_data(websocket, request)
 }
 
-fn get_statements(id: &str, token: &str) -> Result<data::Debates> {
+fn get_statements(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
     let request = format!(r#"["2","2","statements:video:{}","phx_join",{{}}]"#, id);
 
-    websocket(request, token)
+    get_data(websocket, request)
 }
 
-fn get_comments(id: &str, token: &str) -> Result<data::Debates> {
+fn get_comments(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
     let request = format!(r#"["3","3","comments:video:{}","phx_join",{{}}]"#, id);
 
-    websocket(request, token)
+    get_data(websocket, request)
 }
 
-fn websocket(request: String, token: &str) -> Result<data::Debates> {
-    let url = format!(
-        "wss://api.captainfact.io/socket/websocket?token={}&vsn=2.0.0",
-        token
-    );
-    let (mut socket, _) = tungstenite::connect(&url)?;
+fn get_data(websocket: &mut Websocket, request: String) -> Result<data::Debates> {
+    let mut max_tries = 10;
+    websocket.write_message(tungstenite::Message::Text(request))?;
 
-    socket.write_message(tungstenite::Message::Text(request))?;
+    loop {
+        if max_tries < 0 {
+            return Err(Error::WebsocketTryOut);
+        }
 
-    let response = socket.read_message()?;
-    let debates = serde_json::from_str(response.to_text()?)?;
+        let response = websocket.read_message()?;
 
-    Ok(debates)
+        match serde_json::from_str(response.to_text()?) {
+            Ok(debates) => return Ok(debates),
+            Err(_) => max_tries -= 1,
+        }
+    }
 }

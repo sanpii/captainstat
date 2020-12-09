@@ -19,4 +19,7 @@ pub enum Error {
 
     #[error("{0}")]
     Websocket(#[from] tungstenite::Error),
+
+    #[error("Maximum tries reach for websocket")]
+    WebsocketTryOut,
 }
