@@ -59,7 +59,8 @@ create table if not exists "user" (
     registered_at timestamptz not null,
     reputation integer not null,
     speaker_id integer references speaker,
-    username text not null
+    username text not null,
+    document tsvector generated always as (to_tsvector('french', username)) stored
 );
 
 create index if not exists user_speaker_id on "user"(speaker_id);
@@ -94,7 +95,8 @@ create or replace view view.comment as
         end as score,
         comment.approve,
         comment.comment_id,
-        comment.statement_id
+        comment.statement_id,
+        comment.user_id
     from comment
     where reply_to_id is null;
 
@@ -143,6 +145,28 @@ create or replace view view.speaker as
             round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
             round(score_comments / total * 100.0, 2)::float4 as percent_comments
         from s
+        order by title;
+
+create or replace view view."user" as
+    with u as (
+        select "user".user_id, "user".username as title, "user".picture_url as picture, "user".document,
+                'https://captainfact.io/u/' || "user".username as url,
+                count(comment.comment_id) filter (where comment.approve) as nb_approves,
+                count(comment.comment_id) filter (where not comment.approve) as nb_refutes,
+                count(comment.comment_id) filter (where comment.approve is null) as nb_comments,
+                sum(comment.score) filter (where comment.approve) as score_approves,
+                sum(comment.score) filter (where not comment.approve) as score_refutes,
+                sum(comment.score) filter (where comment.approve is null) as score_comments,
+                sum(comment.score) as total
+            from "user"
+            left join view.comment comment using(user_id)
+            group by "user".user_id, "user".username, "user".picture_url
+    )
+    select user_id, title, url, picture, nb_approves, nb_refutes, nb_comments, document,
+            round(score_approves / total * 100.0, 2)::float4 as percent_approves,
+            round(score_refutes / total * 100.0, 2)::float4 as percent_refutes,
+            round(score_comments / total * 100.0, 2)::float4 as percent_comments
+        from u
         order by title;
 
 commit;

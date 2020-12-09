@@ -10,7 +10,7 @@
         {% for entity in pager.iterator %}
         <div class="col mb-4">
             <div class="card">
-                <a href="{{ entity.url }}">
+                <a href="{{ entity.url }}" target="_blank">
                     {% if entity.picture %}
                         <img src="{{ entity.picture }}" class="card-img-top" />
                     {% else %}

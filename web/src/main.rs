@@ -73,8 +73,10 @@ async fn main() -> std::io::Result<()> {
             .service(index)
             .service(videos)
             .service(speakers)
+            .service(users)
             .service(search_videos)
             .service(search_speakers)
+            .service(search_users)
             .service(static_files)
     })
     .bind(&bind)?
@@ -102,15 +104,6 @@ async fn videos(
     list("/videos", sql, None, &data, &pagination)
 }
 
-#[actix_web::get("/speakers")]
-async fn speakers(
-    data: actix_web::web::Data<Data>,
-    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
-) -> Result<actix_web::HttpResponse> {
-    let sql = "select * from view.speaker";
-    list("/speakers", sql, None, &data, &pagination)
-}
-
 #[actix_web::get("/search/videos")]
 async fn search_videos(
     data: actix_web::web::Data<Data>,
@@ -120,6 +113,15 @@ async fn search_videos(
     list(&format!("/search/videos?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
 }
 
+#[actix_web::get("/speakers")]
+async fn speakers(
+    data: actix_web::web::Data<Data>,
+    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
+) -> Result<actix_web::HttpResponse> {
+    let sql = "select * from view.speaker";
+    list("/speakers", sql, None, &data, &pagination)
+}
+
 #[actix_web::get("/search/speakers")]
 async fn search_speakers(
     data: actix_web::web::Data<Data>,
@@ -127,6 +129,24 @@ async fn search_speakers(
 ) -> Result<actix_web::HttpResponse> {
     let sql = search_query("speaker");
     list(&format!("/search/speakers?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
+}
+
+#[actix_web::get("/users")]
+async fn users(
+    data: actix_web::web::Data<Data>,
+    pagination: actix_web::web::Query<elephantry_extras::Pagination>,
+) -> Result<actix_web::HttpResponse> {
+    let sql = "select * from view.user";
+    list("/users", sql, None, &data, &pagination)
+}
+
+#[actix_web::get("/search/users")]
+async fn search_users(
+    data: actix_web::web::Data<Data>,
+    query: actix_web::web::Query<Query>,
+) -> Result<actix_web::HttpResponse> {
+    let sql = search_query("user");
+    list(&format!("/search/user?q={}", query.q), &sql, Some(&query.q), &data, &query.pagination)
 }
 
 fn search_query(ty: &str) -> String {
