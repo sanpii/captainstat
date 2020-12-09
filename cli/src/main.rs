@@ -94,7 +94,11 @@ fn get_summary(token: &str, page: u32) -> Result<Data> {
     Ok(response)
 }
 
-fn save_video(elephantry: &elephantry::Connection, websocket: &mut Websocket, hash_id: &str) -> Result<()> {
+fn save_video(
+    elephantry: &elephantry::Connection,
+    websocket: &mut Websocket,
+    hash_id: &str,
+) -> Result<()> {
     let debates = get_debates(websocket, &hash_id)?;
     let video = match debates.video() {
         Some(video) => video,

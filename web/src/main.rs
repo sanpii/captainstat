@@ -98,7 +98,7 @@ async fn index(data: actix_web::web::Data<Data>) -> Result<actix_web::HttpRespon
 macro_rules! route {
     ($list_name:ident, $list_url:literal, $search_name:ident, $search_url:literal) => {
         #[actix_web::get($list_url)]
-        async fn $list_name (
+        async fn $list_name(
             data: actix_web::web::Data<Data>,
             pagination: actix_web::web::Query<elephantry_extras::Pagination>,
         ) -> Result<actix_web::HttpResponse> {
@@ -112,9 +112,15 @@ macro_rules! route {
             query: actix_web::web::Query<Query>,
         ) -> Result<actix_web::HttpResponse> {
             let sql = $crate::search_query(stringify!($list_name));
-            list(&format!("{}?q={}", $search_url, query.q), &sql, Some(&query.q), &data, &query.pagination)
+            list(
+                &format!("{}?q={}", $search_url, query.q),
+                &sql,
+                Some(&query.q),
+                &data,
+                &query.pagination,
+            )
         }
-    }
+    };
 }
 
 route!(video, "/videos", search_video, "/search/videos");
@@ -123,20 +129,26 @@ route!(user, "/users", search_user, "/search/users");
 
 fn search_query(ty: &str) -> String {
     if ty == "video" {
-        format!("
+        format!(
+            "
 select view.{ty}.*
     from websearch_to_tsquery('french', $*) query,
         view.{ty}
     where view.{ty}.document @@ query
     order by ts_rank_cd(view.{ty}.document, query) desc
-", ty=ty)
+",
+            ty = ty
+        )
     } else {
-         format!("
+        format!(
+            "
 select view.{ty}.*
     from view.{ty}
     where view.{ty}.title ~* $*
     order by view.{ty}.title
-", ty=ty)
+",
+            ty = ty
+        )
     }
 }
 
@@ -158,16 +170,9 @@ fn query(
     q: Option<&str>,
     pagination: &elephantry_extras::Pagination,
 ) -> Result<elephantry::Pager<Entity>> {
-    let paginate_sql = format!(
-        "{} {}",
-        sql,
-        pagination.to_sql(),
-    );
+    let paginate_sql = format!("{} {}", sql, pagination.to_sql(),);
 
-    let sql_count = format!(
-        "with query as ({}) select count(1) from query",
-        sql,
-    );
+    let sql_count = format!("with query as ({}) select count(1) from query", sql,);
 
     let params = if q.is_some() {
         vec![&q as &dyn elephantry::ToSql]
@@ -186,7 +191,8 @@ fn query(
 fn render(
     template: &tera_hot::Template,
     pager: &elephantry::Pager<Entity>,
-    base_url: &str, q: Option<&str>,
+    base_url: &str,
+    q: Option<&str>,
 ) -> Result<actix_web::HttpResponse> {
     let mut context = tera::Context::new();
     context.insert("pager", &pager);
