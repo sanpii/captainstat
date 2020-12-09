@@ -7,11 +7,8 @@ create table if not exists speaker (
     country text,
     picture text,
     title text,
-    wikidata_item_id text,
-    document tsvector generated always as (to_tsvector('french', full_name)) stored
+    wikidata_item_id text
 );
-
-create index if not exists speaker_document on speaker using gin(document);
 
 create table if not exists video (
     video_id integer primary key,
@@ -59,8 +56,7 @@ create table if not exists "user" (
     registered_at timestamptz not null,
     reputation integer not null,
     speaker_id integer references speaker,
-    username text not null,
-    document tsvector generated always as (to_tsvector('french', username)) stored
+    username text not null
 );
 
 create index if not exists user_speaker_id on "user"(speaker_id);
@@ -125,7 +121,7 @@ create or replace view view.video as
 
 create or replace view view.speaker as
     with s as (
-        select speaker.speaker_id, speaker.full_name as title, speaker.picture, speaker.document,
+        select speaker.speaker_id, speaker.full_name as title, speaker.picture, null as document,
                 'https://captainfact.io/s/' || speaker.speaker_id as url,
                 count(comment.comment_id) filter (where comment.approve) as nb_approves,
                 count(comment.comment_id) filter (where not comment.approve) as nb_refutes,
@@ -149,7 +145,7 @@ create or replace view view.speaker as
 
 create or replace view view."user" as
     with u as (
-        select "user".user_id, "user".username as title, "user".picture_url as picture, "user".document,
+        select "user".user_id, "user".username as title, "user".picture_url as picture, null as document,
                 'https://captainfact.io/u/' || "user".username as url,
                 count(comment.comment_id) filter (where comment.approve) as nb_approves,
                 count(comment.comment_id) filter (where not comment.approve) as nb_refutes,

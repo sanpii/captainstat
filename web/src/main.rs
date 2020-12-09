@@ -122,13 +122,22 @@ route!(speaker, "/speakers", search_speaker, "/search/speakers");
 route!(user, "/users", search_user, "/search/users");
 
 fn search_query(ty: &str) -> String {
-    format!("
+    if ty == "video" {
+        format!("
 select view.{ty}.*
     from websearch_to_tsquery('french', $*) query,
         view.{ty}
     where view.{ty}.document @@ query
     order by ts_rank_cd(view.{ty}.document, query) desc
 ", ty=ty)
+    } else {
+         format!("
+select view.{ty}.*
+    from view.{ty}
+    where view.{ty}.title ~* $*
+    order by view.{ty}.title
+", ty=ty)
+    }
 }
 
 fn list(
