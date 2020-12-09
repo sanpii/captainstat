@@ -10,6 +10,8 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 struct Opt {
     video_hash_id: Option<String>,
+    #[structopt(long)]
+    limit: Option<u32>,
 }
 
 fn main() -> Result<()> {
@@ -32,8 +34,9 @@ fn main() -> Result<()> {
 
         loop {
             let data = get_data(&token, page)?;
+            let limit = opt.limit.unwrap_or_else(|| data.total_page());
 
-            log::info!("Fetching page {}/{}", page, data.total_page());
+            log::info!("Fetching page {}/{}", page, limit);
 
             for ref hash_id in data.hash_id() {
                 if save_video(&elephantry, &token, hash_id).is_err() {
@@ -41,7 +44,7 @@ fn main() -> Result<()> {
                 }
             }
 
-            if page == data.total_page() {
+            if page == limit {
                 break;
             } else {
                 page += 1;
