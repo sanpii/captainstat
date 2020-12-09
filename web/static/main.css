@@ -22,7 +22,8 @@ html, body, body main {
 }
 
 svg {
-    color: lightgray;
+    color: gray;
+    opacity: 75%;
 }
 
 .progress-bar.bg-none {
