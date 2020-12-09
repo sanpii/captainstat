@@ -81,7 +81,7 @@ impl Debates {
 #[serde(untagged)]
 pub enum Debate {
     String(Option<String>),
-    Response(Response),
+    Response(Box<Response>),
     PresenteState(PresenteState),
 }
 
