@@ -10,11 +10,13 @@
         {% for entity in pager.iterator %}
         <div class="col mb-4">
             <div class="card">
-                {% if entity.picture %}
-                    <img src="{{ entity.picture }}" class="card-img-top" />
-                {% else %}
-                    {{ macros::svg(icon="person", size=256) }}
-                {% endif %}
+                <a href="{{ entity.url }}">
+                    {% if entity.picture %}
+                        <img src="{{ entity.picture }}" class="card-img-top" />
+                    {% else %}
+                        {{ macros::svg(icon="person", size=256) }}
+                    {% endif %}
+                </a>
                 <div class="card-body">
                     <div class="progress card-title">
                         <div
