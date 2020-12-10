@@ -134,8 +134,8 @@ fn save_video(
 
     let statements = get_statements(websocket, hash_id)?;
     let statements = match statements.statements() {
-        Some(statements) => statements,
-        None => return Ok(()),
+        Some(statements) => statements.clone(),
+        None => Vec::new(),
     };
 
     for statement in statements {
@@ -148,7 +148,7 @@ fn save_video(
     let comments = get_comments(websocket, &hash_id)?;
     let mut comments = match comments.comments() {
         Some(comments) => comments.clone(),
-        None => return Ok(()),
+        None => Vec::new(),
     };
     comments.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
 
