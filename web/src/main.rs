@@ -132,9 +132,10 @@ fn search_query(ty: &str) -> String {
         format!(
             "
 select view.{ty}.*
-    from websearch_to_tsquery('french', $*) query,
+    from websearch_to_tsquery('french', $1) query,
         view.{ty}
     where view.{ty}.document @@ query
+        or url = $1
     order by ts_rank_cd(view.{ty}.document, query) desc
 ",
             ty = ty
@@ -144,7 +145,8 @@ select view.{ty}.*
             "
 select view.{ty}.*
     from view.{ty}
-    where view.{ty}.title ~* $*
+    where view.{ty}.title ~* $1
+        or url = $1
     order by view.{ty}.title
 ",
             ty = ty
