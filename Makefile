@@ -38,7 +38,3 @@ yarn: web/static/lib
 
 web/static/lib: web/package.json
 	cd web && $(YARN) $(YARN_FLAGS) install
-
-serve: web
-	microserver web/static/
-.PHONY: server
