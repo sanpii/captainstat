@@ -15,7 +15,7 @@ thiserror = "1.0"
 tungstenite = "0.13"
 
 [dependencies.attohttpc]
-version = "0.16"
+version = "0.17"
 features = ["json"]
 
 [dependencies.elephantry]
