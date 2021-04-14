@@ -10,11 +10,11 @@ pub enum Error {
     Template(#[from] tera::Error),
 }
 
-impl Into<actix_web::http::StatusCode> for &Error {
-    fn into(self) -> actix_web::http::StatusCode {
+impl From<&Error> for actix_web::http::StatusCode {
+    fn from(error: &Error) -> Self {
         use actix_web::http::StatusCode;
 
-        match self {
+        match error {
             Error::Elephantry(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::NotFound => StatusCode::NOT_FOUND,
             Error::Template(_) => StatusCode::INTERNAL_SERVER_ERROR,
