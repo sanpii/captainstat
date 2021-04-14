@@ -17,6 +17,8 @@ lint:clippy:
     stage: lint
     before_script:
         - rustup component add clippy
+        - apt update
+        - apt install clang -y
     script: cargo clippy --all-features -- --deny warnings
 
 cache:
