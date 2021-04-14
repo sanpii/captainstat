@@ -53,13 +53,12 @@ async fn main() -> std::io::Result<()> {
     template.register_function("pager", elephantry_extras::tera::Pager);
     template.clone().watch();
 
-    actix_web::HttpServer::new(move || {
-        let elephantry =
-            elephantry::Pool::new(&database_url).expect("Unable to connect to postgresql");
+    let elephantry = elephantry::Pool::new(&database_url).expect("Unable to connect to postgresql");
 
+    actix_web::HttpServer::new(move || {
         let data = Data {
+            elephantry: elephantry.clone(),
             template: template.clone(),
-            elephantry,
         };
 
         let dir = format!("{}/static", env!("CARGO_MANIFEST_DIR"));
