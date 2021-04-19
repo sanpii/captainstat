@@ -4,16 +4,17 @@ mod data;
 mod errors;
 mod model;
 
+use clap::Parser;
 use data::*;
 use errors::*;
-use structopt::StructOpt;
+use std::convert::TryInto;
 
 type Websocket = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Opt {
     video_hash_id: Option<String>,
-    #[structopt(long)]
+    #[clap(long)]
     limit: Option<u32>,
 }
 
@@ -23,7 +24,7 @@ fn main() -> Result<()> {
 
     env_logger::init();
 
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
 
     let email = env("LOGIN_EMAIL")?;
     let password = env("LOGIN_PASSWORD")?;
