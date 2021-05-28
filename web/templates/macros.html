@@ -5,6 +5,7 @@
 {% endmacro svg %}
 
 {% macro card(label, url, icon) %}
+<div class="col">
     <div class="card">
         <div class="card-body">
             <a href="{{ url }}" title="{{ label }}">
@@ -13,4 +14,5 @@
         </div>
         <div class="card-footer">{{ label }}</div>
     </div>
+</div>
 {% endmacro card %}

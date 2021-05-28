@@ -8,23 +8,31 @@
         <link rel="stylesheet" href="/static/lib/bootstrap/dist/css/bootstrap.min.css" />
         <link rel="stylesheet" href="/static/main.css" />
     </head>
-    <body class="d-flex flex-column h-100">
-        <header>
-            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-                <a class="navbar-brand" href="/">CaptainStat</a>
+    <body>
+        <header class="p-2 bg-dark fixed-top">
+            <div class="container">
+                <div class="d-flex">
+                    <a class="text-white navbar-brand" href="/">CaptainStat</a>
 
-                {% if base_url %}
-                    <form class="form-inline form-row" action="/search{{ base_url|trim_start_matches(pat="/search") }}" method="get">
-                        <input class="form-control form-control-dark col-7"
-                        type="text" placeholder="Search" aria-label="Search" name="q" value="{% if q %}{{ q }}{% endif %}" />
-                    <form>
-                {% else %}
-                    <div class="form-inline form-row"></div>
-                {% endif %}
-                <a href="https://github.com/sanpii/captainstat" target="_blank" title="Code source">
-                    {{ macros::svg(icon="file-earmark-code", size=32) }}
-                </a>
-            </nav>
+                    {% if base_url %}
+                        <form action="/search{{ base_url|trim_start_matches(pat="/search") }}" method="get">
+                            <input
+                                class="form-control form-control-dark me-2"
+                                type="text"
+                                placeholder="Search"
+                                aria-label="Search"
+                                name="q"
+                                value="{% if q %}{{ q }}{% endif %}"
+                            />
+                        </form>
+                    {% else %}
+                        <form></form>
+                    {% endif %}
+                    <a href="https://github.com/sanpii/captainstat" target="_blank" title="Code source">
+                        {{ macros::svg(icon="file-earmark-code", size=32) }}
+                    </a>
+                </div>
+            </div>
         </header>
 
         <main>
