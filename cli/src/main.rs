@@ -76,13 +76,17 @@ fn login(email: &str, password: &str) -> Result<String> {
         password: password,
     });
 
-    let response: serde_json::Value =
-        attohttpc::post("https://api.captainfact.io/auth/identity/callback")
-            .json(&query)?
-            .send()?
-            .json()?;
+    let response = attohttpc::post("https://api.captainfact.io/auth/identity/callback")
+        .json(&query)?
+        .send()?;
 
-    Ok(response["user"]["token"].to_string())
+    if response.is_success() {
+        let json: serde_json::Value = response.json()?;
+
+        Ok(json["user"]["token"].to_string())
+    } else {
+        Err(Error::Auth(response.status(), response.json()?))
+    }
 }
 
 fn get_summary(token: &str, page: u32) -> Result<Data> {

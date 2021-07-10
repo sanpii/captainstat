@@ -2,6 +2,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("Unable to login ({0}): {1}")]
+    Auth(attohttpc::StatusCode, serde_json::Value),
+
     #[error("{0}")]
     Database(#[from] elephantry::Error),
 
