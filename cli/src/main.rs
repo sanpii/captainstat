@@ -20,7 +20,7 @@ fn main() -> Result<()> {
     #[cfg(debug_assertions)]
     dotenv::dotenv().ok();
 
-    pretty_env_logger::init();
+    env_logger::init();
 
     let opt = Opt::from_args();
 

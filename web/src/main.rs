@@ -42,7 +42,7 @@ async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
     dotenv::dotenv().ok();
 
-    pretty_env_logger::init();
+    env_logger::init();
 
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let ip = std::env::var("LISTEN_IP").expect("Missing LISTEN_IP env variable");
