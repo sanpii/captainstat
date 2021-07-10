@@ -72,20 +72,25 @@ fn env(name: &str) -> Result<String> {
 
 fn login(email: &str, password: &str) -> Result<String> {
     let query = serde_json::json!({
-        email: email,
-        password: password,
+        "email": email,
+        "password": password,
     });
 
     let response = attohttpc::post("https://api.captainfact.io/auth/identity/callback")
         .json(&query)?
         .send()?;
+    let status = response.status();
+    let json = response.json()?;
 
-    if response.is_success() {
-        let json: serde_json::Value = response.json()?;
+    if !status.is_success() {
+        return Err(Error::Auth(status, json));
+    }
 
-        Ok(json["user"]["token"].to_string())
+    let json: serde_json::Value = json;
+    if let Some(token) = json["token"].as_str() {
+        Ok(token.to_string())
     } else {
-        Err(Error::Auth(response.status(), response.json()?))
+        Err(Error::Auth(status, json))
     }
 }
 
