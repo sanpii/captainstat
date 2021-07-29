@@ -44,7 +44,7 @@ impl Debates {
         for debate in &self.0 {
             if let Debate::Response(response) = debate {
                 if let Content::Video(ref video) = response.response {
-                    return Some(&video);
+                    return Some(video);
                 }
             }
         }
@@ -56,7 +56,7 @@ impl Debates {
         for debate in &self.0 {
             if let Debate::Response(response) = debate {
                 if let Content::Statements(ref statements) = response.response {
-                    return Some(&statements);
+                    return Some(statements);
                 }
             }
         }

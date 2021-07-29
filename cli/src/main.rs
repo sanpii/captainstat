@@ -129,16 +129,16 @@ fn save_video(
     websocket: &mut Websocket,
     hash_id: &str,
 ) -> Result<()> {
-    let debates = get_debates(websocket, &hash_id)?;
+    let debates = get_debates(websocket, hash_id)?;
     let video = match debates.video() {
         Some(video) => video,
         None => return Ok(()),
     };
 
-    save::<model::video::Model, _>(&elephantry, "video_pkey", video)?;
+    save::<model::video::Model, _>(elephantry, "video_pkey", video)?;
 
     for speaker in &video.speakers {
-        save::<model::speaker::Model, _>(&elephantry, "speaker_pkey", speaker)?;
+        save::<model::speaker::Model, _>(elephantry, "speaker_pkey", speaker)?;
     }
 
     let statements = get_statements(websocket, hash_id)?;
@@ -151,10 +151,10 @@ fn save_video(
         let mut st = statement.clone();
         st.video_id = video.id;
 
-        save::<model::statement::Model, _>(&elephantry, "statement_pkey", &st)?;
+        save::<model::statement::Model, _>(elephantry, "statement_pkey", &st)?;
     }
 
-    let comments = get_comments(websocket, &hash_id)?;
+    let comments = get_comments(websocket, hash_id)?;
     let mut comments = match comments.comments() {
         Some(comments) => comments.clone(),
         None => Vec::new(),
@@ -163,14 +163,14 @@ fn save_video(
 
     for comment in comments {
         if let Some(source) = &comment.source {
-            save::<model::source::Model, _>(&elephantry, "source_pkey", source)?;
+            save::<model::source::Model, _>(elephantry, "source_pkey", source)?;
         }
 
         if let Some(user) = &comment.user {
-            save::<model::user::Model, _>(&elephantry, "user_pkey", user)?;
+            save::<model::user::Model, _>(elephantry, "user_pkey", user)?;
         }
 
-        save::<model::comment::Model, _>(&elephantry, "comment_pkey", &comment)?;
+        save::<model::comment::Model, _>(elephantry, "comment_pkey", &comment)?;
     }
 
     Ok(())
