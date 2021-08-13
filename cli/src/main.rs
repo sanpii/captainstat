@@ -7,7 +7,7 @@ use errors::*;
 use std::convert::TryInto;
 use structopt::StructOpt;
 
-type Websocket = tungstenite::WebSocket<tungstenite::client::AutoStream>;
+type Websocket = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>;
 
 #[derive(StructOpt)]
 struct Opt {
