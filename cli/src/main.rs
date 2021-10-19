@@ -4,7 +4,6 @@ mod model;
 
 use data::*;
 use errors::*;
-use std::convert::TryInto;
 use structopt::StructOpt;
 
 type Websocket = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std::net::TcpStream>>;

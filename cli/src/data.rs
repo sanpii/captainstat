@@ -121,7 +121,7 @@ pub struct DebateVideo {
     pub youtube_offset: i32,
 }
 
-impl std::convert::TryInto<crate::model::video::Entity> for DebateVideo {
+impl TryInto<crate::model::video::Entity> for DebateVideo {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::video::Entity> {
@@ -156,7 +156,7 @@ pub struct Speaker {
     pub wikidata_item_id: Option<String>,
 }
 
-impl std::convert::TryInto<crate::model::speaker::Entity> for Speaker {
+impl TryInto<crate::model::speaker::Entity> for Speaker {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::speaker::Entity> {
@@ -184,7 +184,7 @@ pub struct Statement {
     pub time: i32,
 }
 
-impl std::convert::TryInto<crate::model::statement::Entity> for Statement {
+impl TryInto<crate::model::statement::Entity> for Statement {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::statement::Entity> {
@@ -219,7 +219,7 @@ pub struct Comment {
     pub user: Option<User>,
 }
 
-impl std::convert::TryInto<crate::model::comment::Entity> for Comment {
+impl TryInto<crate::model::comment::Entity> for Comment {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::comment::Entity> {
@@ -251,7 +251,7 @@ pub struct Source {
     url: String,
 }
 
-impl std::convert::TryInto<crate::model::source::Entity> for Source {
+impl TryInto<crate::model::source::Entity> for Source {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::source::Entity> {
@@ -279,7 +279,7 @@ pub struct User {
     username: String,
 }
 
-impl std::convert::TryInto<crate::model::user::Entity> for User {
+impl TryInto<crate::model::user::Entity> for User {
     type Error = crate::Error;
 
     fn try_into(self) -> crate::Result<crate::model::user::Entity> {
