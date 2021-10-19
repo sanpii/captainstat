@@ -14,7 +14,7 @@ structopt = "0.3"
 thiserror = "1.0"
 
 [dependencies.attohttpc]
-version = "0.17"
+version = "0.18"
 features = ["json"]
 
 [dependencies.elephantry]
