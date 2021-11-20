@@ -1,3 +1,5 @@
+#![warn(warnings)]
+
 mod data;
 mod errors;
 mod model;
