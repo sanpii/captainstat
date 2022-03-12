@@ -68,7 +68,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(actix_web::middleware::NormalizePath::new(
                 actix_web::middleware::TrailingSlash::Trim,
             ))
-            .app_data(data)
+            .app_data(actix_web::web::Data::new(data))
             .service(index)
             .service(video)
             .service(speaker)
