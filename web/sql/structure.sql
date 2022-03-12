@@ -48,7 +48,7 @@ create table if not exists source (
 );
 
 create table if not exists "user" (
-    id integer primary key,
+    user_id integer primary key,
     achievements smallint[],
     mini_picture_url text not null,
     name text,
