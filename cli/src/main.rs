@@ -180,7 +180,7 @@ fn save_video(
 
 fn save<'a, M, T>(elephantry: &elephantry::Connection, constraint: &str, data: &T) -> Result<()>
 where
-    M: elephantry::Model<'a>,
+    M: elephantry::Model,
     T: TryInto<M::Entity, Error = crate::Error> + Clone,
 {
     let entity = data.clone().try_into()?;
