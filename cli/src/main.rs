@@ -178,7 +178,7 @@ fn save_video(
     Ok(())
 }
 
-fn save<'a, M, T>(elephantry: &elephantry::Connection, constraint: &str, data: &T) -> Result<()>
+fn save<M, T>(elephantry: &elephantry::Connection, constraint: &str, data: &T) -> Result<()>
 where
     M: elephantry::Model,
     T: TryInto<M::Entity, Error = crate::Error> + Clone,
