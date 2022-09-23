@@ -14,7 +14,7 @@ type Websocket = tungstenite::WebSocket<tungstenite::stream::MaybeTlsStream<std:
 #[derive(Parser)]
 struct Opt {
     video_hash_id: Option<String>,
-    #[clap(long)]
+    #[arg(long)]
     limit: Option<u32>,
 }
 
