@@ -17,7 +17,7 @@ version = "0.19"
 features = ["json"]
 
 [dependencies.clap]
-version = "3.0"
+version = "4.0"
 features = ["derive"]
 
 [dependencies.elephantry]
