@@ -47,7 +47,7 @@ async fn main() -> std::io::Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("Missing DATABASE_URL env variable");
     let ip = std::env::var("LISTEN_IP").expect("Missing LISTEN_IP env variable");
     let port = std::env::var("LISTEN_PORT").expect("Missing LISTEN_IP env variable");
-    let bind = format!("{}:{}", ip, port);
+    let bind = format!("{ip}:{port}");
 
     let mut template = tera_hot::Template::new(TEMPLATE_DIR);
     template.register_function("pager", elephantry_extras::tera::Pager);
@@ -62,7 +62,7 @@ async fn main() -> std::io::Result<()> {
         };
 
         let dir = format!("{}/static", env!("CARGO_MANIFEST_DIR"));
-        let static_files = actix_files::Files::new("/static", &dir);
+        let static_files = actix_files::Files::new("/static", dir);
 
         actix_web::App::new()
             .wrap(actix_web::middleware::NormalizePath::new(
@@ -136,8 +136,7 @@ select view.{ty}.*
     where view.{ty}.document @@ query
         or url = $1
     order by ts_rank_cd(view.{ty}.document, query) desc
-",
-            ty = ty
+"
         )
     } else {
         format!(
@@ -147,8 +146,7 @@ select view.{ty}.*
     where view.{ty}.title ~* $1
         or url = $1
     order by view.{ty}.title
-",
-            ty = ty
+"
         )
     }
 }
@@ -171,9 +169,9 @@ fn query(
     q: Option<&str>,
     pagination: &elephantry_extras::Pagination,
 ) -> Result<elephantry::Pager<Entity>> {
-    let paginate_sql = format!("{} {}", sql, pagination.to_sql(),);
+    let paginate_sql = format!("{sql} {}", pagination.to_sql(),);
 
-    let sql_count = format!("with query as ({}) select count(1) from query", sql,);
+    let sql_count = format!("with query as ({sql}) select count(1) from query");
 
     let params = if q.is_some() {
         vec![&q as &dyn elephantry::ToSql]

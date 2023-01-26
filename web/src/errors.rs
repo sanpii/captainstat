@@ -31,7 +31,7 @@ impl actix_web::error::ResponseError for Error {
         let body = match template.render(&file, &tera::Context::new()) {
             Ok(body) => body,
             Err(err) => {
-                eprintln!("{:?}", err);
+                eprintln!("{err:?}");
 
                 "Internal server error".to_string()
             }

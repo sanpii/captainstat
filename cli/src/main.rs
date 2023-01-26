@@ -33,10 +33,7 @@ fn main() -> Result<()> {
     let database_url = env("DATABASE_URL")?;
     let elephantry = elephantry::Pool::new(&database_url)?;
 
-    let url = format!(
-        "wss://api.captainfact.io/socket/websocket?token={}&vsn=2.0.0",
-        token
-    );
+    let url = format!("wss://api.captainfact.io/socket/websocket?token={token}&vsn=2.0.0");
 
     let (mut websocket, _) = tungstenite::connect(&url)?;
 
@@ -118,7 +115,7 @@ fn get_summary(token: &str, page: u32) -> Result<Data> {
     });
 
     let response: Data = attohttpc::post("https://graphql.captainfact.io")
-        .header("authorization", format!("Bearer {}", token))
+        .header("authorization", format!("Bearer {token}"))
         .json(&query)?
         .send()?
         .json()?;
@@ -185,25 +182,25 @@ where
 {
     let entity = data.clone().try_into()?;
 
-    elephantry.upsert_one::<M>(&entity, &format!("on constraint {}", constraint), "nothing")?;
+    elephantry.upsert_one::<M>(&entity, &format!("on constraint {constraint}"), "nothing")?;
 
     Ok(())
 }
 
 fn get_debates(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
-    let request = format!(r#"["1","1","video_debate:{}","phx_join",{{}}]"#, id);
+    let request = format!(r#"["1","1","video_debate:{id}","phx_join",{{}}]"#);
 
     get_data(websocket, request)
 }
 
 fn get_statements(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
-    let request = format!(r#"["2","2","statements:video:{}","phx_join",{{}}]"#, id);
+    let request = format!(r#"["2","2","statements:video:{id}","phx_join",{{}}]"#);
 
     get_data(websocket, request)
 }
 
 fn get_comments(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
-    let request = format!(r#"["3","3","comments:video:{}","phx_join",{{}}]"#, id);
+    let request = format!(r#"["3","3","comments:video:{id}","phx_join",{{}}]"#);
 
     get_data(websocket, request)
 }
