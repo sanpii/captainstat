@@ -46,11 +46,11 @@ fn main() -> Result<()> {
             let data = get_summary(&token, page)?;
             let limit = opt.limit.unwrap_or_else(|| data.total_page());
 
-            log::info!("Fetching page {}/{}", page, limit);
+            log::info!("Fetching page {page}/{limit}");
 
             for hash_id in data.hash_id() {
                 if save_video(&elephantry, &mut websocket, hash_id).is_err() {
-                    log::error!("Unable to save video '{}'", hash_id);
+                    log::error!("Unable to save video '{hash_id}'");
                 }
             }
 
