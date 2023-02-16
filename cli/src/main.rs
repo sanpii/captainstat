@@ -56,9 +56,9 @@ fn main() -> Result<()> {
 
             if page == limit {
                 break;
-            } else {
-                page += 1;
             }
+
+            page += 1;
         }
     }
 
