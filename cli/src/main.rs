@@ -48,7 +48,7 @@ fn main() -> Result<()> {
 
             log::info!("Fetching page {}/{}", page, limit);
 
-            for ref hash_id in data.hash_id() {
+            for hash_id in data.hash_id() {
                 if save_video(&elephantry, &mut websocket, hash_id).is_err() {
                     log::error!("Unable to save video '{}'", hash_id);
                 }
