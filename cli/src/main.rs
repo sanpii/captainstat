@@ -129,9 +129,8 @@ fn save_video(
     hash_id: &str,
 ) -> Result<()> {
     let debates = get_debates(websocket, hash_id)?;
-    let video = match debates.video() {
-        Some(video) => video,
-        None => return Ok(()),
+    let Some(video) = debates.video() else {
+        return Ok(());
     };
 
     save::<model::video::Model, _>(elephantry, "video_pkey", video)?;
