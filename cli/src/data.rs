@@ -93,7 +93,7 @@ pub struct Response {
 #[derive(Clone, Debug, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Content {
-    Video(DebateVideo),
+    Video(Box<DebateVideo>),
     Statements(Vec<Statement>),
     Comments(Comments),
 }
