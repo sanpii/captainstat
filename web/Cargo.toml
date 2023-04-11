@@ -11,7 +11,7 @@ dotenv = "0.15"
 env_logger = "0.10"
 log = "0.4"
 tera = "1.5"
-tera-hot = "0.3"
+tera-hot = "0.4"
 thiserror = "1.0"
 
 [dependencies.elephantry]
