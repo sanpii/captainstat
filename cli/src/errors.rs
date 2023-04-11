@@ -1,4 +1,4 @@
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T = ()> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -11,8 +11,8 @@ pub enum Error {
     #[error("{0}")]
     Date(#[from] chrono::ParseError),
 
-    #[error("Missing {0} environment variable")]
-    Env(String),
+    #[error("{0}")]
+    Env(#[from] envir::Error),
 
     #[error("{0}")]
     Integer(#[from] std::num::ParseIntError),

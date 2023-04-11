@@ -18,19 +18,19 @@ struct Opt {
     limit: Option<u32>,
 }
 
-fn main() -> Result<()> {
+fn main() -> Result {
     #[cfg(debug_assertions)]
-    dotenvy::dotenv().ok();
+    envir::dotenv();
 
     env_logger::init();
 
     let opt = Opt::parse();
 
-    let email = env("LOGIN_EMAIL")?;
-    let password = env("LOGIN_PASSWORD")?;
+    let email = envir::get("LOGIN_EMAIL")?;
+    let password = envir::get("LOGIN_PASSWORD")?;
     let token = login(&email, &password)?;
 
-    let database_url = env("DATABASE_URL")?;
+    let database_url = envir::get("DATABASE_URL")?;
     let elephantry = elephantry::Pool::new(&database_url)?;
 
     let url = format!("wss://api.captainfact.io/socket/websocket?token={token}&vsn=2.0.0");
@@ -63,10 +63,6 @@ fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn env(name: &str) -> Result<String> {
-    std::env::var(name).map_err(|_| Error::Env(name.to_string()))
 }
 
 fn login(email: &str, password: &str) -> Result<String> {

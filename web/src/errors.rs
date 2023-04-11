@@ -1,9 +1,13 @@
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T = ()> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("{0}")]
     Elephantry(#[from] elephantry::Error),
+    #[error("{0}")]
+    Env(#[from] envir::Error),
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
     #[error("")]
     NotFound,
     #[error("{0}")]
@@ -15,9 +19,8 @@ impl From<&Error> for actix_web::http::StatusCode {
         use actix_web::http::StatusCode;
 
         match error {
-            Error::Elephantry(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::NotFound => StatusCode::NOT_FOUND,
-            Error::Template(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
