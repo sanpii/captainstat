@@ -40,7 +40,7 @@ static TEMPLATE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/templates");
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     #[cfg(debug_assertions)]
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
 
     env_logger::init();
 
