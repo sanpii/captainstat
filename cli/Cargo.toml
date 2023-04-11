@@ -5,7 +5,6 @@ authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2021"
 
 [dependencies]
-chrono = "0.4"
 dotenvy.workspace = true
 env_logger.workspace = true
 log.workspace = true
@@ -16,6 +15,11 @@ thiserror.workspace = true
 [dependencies.attohttpc]
 version = "0.24"
 features = ["json"]
+
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["std"]
 
 [dependencies.clap]
 version = "4.0"
