@@ -30,5 +30,5 @@ workspace = true
 features = ["date"]
 
 [dependencies.tungstenite]
-version = "0.18"
+version = "0.19"
 features = ["native-tls"]
