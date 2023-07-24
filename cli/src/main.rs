@@ -202,14 +202,14 @@ fn get_comments(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
 
 fn get_data(websocket: &mut Websocket, request: String) -> Result<data::Debates> {
     let mut max_tries = 10;
-    websocket.write_message(tungstenite::Message::Text(request))?;
+    websocket.send(tungstenite::Message::Text(request))?;
 
     loop {
         if max_tries < 0 {
             return Err(Error::WebsocketTryOut);
         }
 
-        let response = websocket.read_message()?;
+        let response = websocket.read()?;
 
         match serde_json::from_str(response.to_text()?) {
             Ok(debates) => return Ok(debates),
