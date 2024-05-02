@@ -35,7 +35,7 @@ fn main() -> Result {
 
     let url = format!("wss://api.captainfact.io/socket/websocket?token={token}&vsn=2.0.0");
 
-    let (mut websocket, _) = tungstenite::connect(&url)?;
+    let (mut websocket, _) = tungstenite::connect(url)?;
 
     if let Some(video_hash_id) = opt.video_hash_id {
         save_video(&elephantry, &mut websocket, &video_hash_id)?;
