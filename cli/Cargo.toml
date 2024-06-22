@@ -5,7 +5,6 @@ authors = ["Sanpi <sanpi@homecomputing.fr>"]
 edition = "2021"
 
 [dependencies]
-env_logger.workspace = true
 envir.workspace = true
 log.workspace = true
 serde.workspace = true
