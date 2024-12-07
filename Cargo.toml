@@ -5,7 +5,7 @@ members = [
 ]
 
 [workspace.dependencies]
-envir = "0.4"
+envir = "1.0"
 elephantry = "4.0"
 log = "0.4"
 thiserror = "2.0"
