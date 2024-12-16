@@ -199,7 +199,7 @@ fn get_comments(websocket: &mut Websocket, id: &str) -> Result<data::Debates> {
 
 fn get_data(websocket: &mut Websocket, request: String) -> Result<data::Debates> {
     let mut max_tries = 10;
-    websocket.send(tungstenite::Message::Text(request))?;
+    websocket.send(tungstenite::Message::Text(request.into()))?;
 
     loop {
         if max_tries < 0 {
