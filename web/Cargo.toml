@@ -11,7 +11,7 @@ envir.workspace = true
 log.workspace = true
 serde.workspace = true
 tera = "1.5"
-tera-hot = "0.4"
+tera-hot = "0.5"
 thiserror.workspace = true
 
 [dependencies.elephantry]
