@@ -19,5 +19,5 @@ workspace = true
 features = ["serde"]
 
 [dependencies.elephantry-extras]
-version = "0.7"
+version = "0.8"
 features = ["tera-pager"]
