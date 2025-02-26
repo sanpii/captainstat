@@ -1,8 +1,12 @@
 [workspace]
+resolver = "3"
 members = [
     "web",
     "cli",
 ]
+
+[workspace.package]
+edition = "2024"
 
 [workspace.dependencies]
 envir = "1.0"

@@ -2,7 +2,7 @@
 name = "captainstat-cli"
 version = "0.1.0"
 authors = ["Sanpi <sanpi@homecomputing.fr>"]
-edition = "2021"
+edition.workspace = true
 
 [dependencies]
 envir.workspace = true
