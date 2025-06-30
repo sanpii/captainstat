@@ -42,10 +42,10 @@ pub struct Debates(Vec<Debate>);
 impl Debates {
     pub fn video(&self) -> Option<&DebateVideo> {
         for debate in &self.0 {
-            if let Debate::Response(response) = debate {
-                if let Content::Video(ref video) = response.response {
-                    return Some(video);
-                }
+            if let Debate::Response(response) = debate
+                && let Content::Video(ref video) = response.response
+            {
+                return Some(video);
             }
         }
 
@@ -54,10 +54,10 @@ impl Debates {
 
     pub fn statements(&self) -> Option<&Vec<Statement>> {
         for debate in &self.0 {
-            if let Debate::Response(response) = debate {
-                if let Content::Statements(ref statements) = response.response {
-                    return Some(statements);
-                }
+            if let Debate::Response(response) = debate
+                && let Content::Statements(ref statements) = response.response
+            {
+                return Some(statements);
             }
         }
 
@@ -66,10 +66,10 @@ impl Debates {
 
     pub fn comments(&self) -> Option<&Vec<Comment>> {
         for debate in &self.0 {
-            if let Debate::Response(response) = debate {
-                if let Content::Comments(ref comments) = response.response {
-                    return Some(&comments.comments);
-                }
+            if let Debate::Response(response) = debate
+                && let Content::Comments(ref comments) = response.response
+            {
+                return Some(&comments.comments);
             }
         }
 
