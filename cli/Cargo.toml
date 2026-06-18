@@ -7,7 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 envir.workspace = true
-log.workspace = true
+log = "0.4"
 serde.workspace = true
 serde_json = "1.0"
 thiserror.workspace = true
