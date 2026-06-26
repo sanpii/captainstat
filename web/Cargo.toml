@@ -9,7 +9,7 @@ actix-files = "0.6"
 actix-web = "4.0"
 envir.workspace = true
 serde.workspace = true
-tera = "1.5"
+tera = "2.0"
 tera-hot = "0.5"
 thiserror.workspace = true
 
