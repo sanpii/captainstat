@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <div class="alert alert-info">
-        {{ macros::svg(icon="info-circle", size=32) }}
+        {{ <svg icon="info-circle" size={32} /> }}
         Voici un aperçu rapide, que j’espère le moins biaisé possible, du
         contenu de la plateforme collaborative
         <a href="https://captainfact.io/" target="_blank">CaptainFact</a>,
@@ -32,7 +32,7 @@
                     {% if entity.picture %}
                         <img src="{{ entity.picture }}" class="card-img-top" />
                     {% else %}
-                        {{ macros::svg(icon="person", size=256) }}
+                        {{ <svg icon="person" size={256} /> }}
                     {% endif %}
                 </a>
                 <div class="card-body">

@@ -1,18 +1,18 @@
-{% macro svg(icon, size) %}
+{% component svg(icon: string, size: integer) %}
     <svg width="{{ size }}" height="{{ size }}" fill="currentColor">
         <use xlink:href="/static/lib/bootstrap-icons/bootstrap-icons.svg#{{ icon }}"/>
     </svg>
-{% endmacro svg %}
+{% endcomponent svg %}
 
-{% macro card(label, url, icon) %}
-<div class="col">
-    <div class="card">
-        <div class="card-body">
-            <a href="{{ url }}" title="{{ label }}">
-                {{ self::svg(icon=icon, size=256) }}
-            </a>
+{% component card(label: string, url: string, icon: string) %}
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <a href="{{ url }}" title="{{ label }}">
+                    {{ <svg icon="icon" size={256} /> }}
+                </a>
+            </div>
+            <div class="card-footer">{{ label }}</div>
         </div>
-        <div class="card-footer">{{ label }}</div>
     </div>
-</div>
-{% endmacro card %}
+{% endcomponent card %}

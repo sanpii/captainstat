@@ -29,8 +29,12 @@ impl actix_web::error::ResponseError for Error {
     fn error_response(&self) -> actix_web::HttpResponse {
         let status: actix_web::http::StatusCode = self.into();
 
+        let template = match crate::template() {
+            Ok(template) => template,
+            Err(err) => panic!("{err:?}"),
+        };
+
         let file = format!("errors/{}.html", u16::from(status));
-        let template = tera_hot::Template::new(crate::TEMPLATE_DIR);
         let body = match template.render(&file, &tera::Context::new()) {
             Ok(body) => body,
             Err(err) => {

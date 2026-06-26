@@ -31,11 +31,11 @@ struct Query {
 }
 
 struct Data {
-    template: tera_hot::Template,
+    template: tera::Tera,
     elephantry: elephantry::Pool,
 }
 
-static TEMPLATE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/templates");
+static TEMPLATE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/**/*.html");
 
 #[actix_web::main]
 async fn main() -> Result {
@@ -46,10 +46,7 @@ async fn main() -> Result {
     let port = envir::get("LISTEN_PORT")?;
     let bind = format!("{ip}:{port}");
 
-    let mut template = tera_hot::Template::new(TEMPLATE_DIR);
-    template.register_function("pager", elephantry_extras::tera::Pager);
-    template.clone().watch();
-
+    let template = template()?;
     let elephantry = elephantry::Pool::new(&database_url).expect("Unable to connect to postgresql");
 
     actix_web::HttpServer::new(move || {
@@ -80,6 +77,14 @@ async fn main() -> Result {
     .await?;
 
     Ok(())
+}
+
+fn template() -> crate::Result<tera::Tera> {
+    let mut template = tera::Tera::new();
+    template.register_function("pager", elephantry_extras::tera::Pager);
+    template.load_from_glob(TEMPLATE_DIR)?;
+
+    Ok(template)
 }
 
 #[actix_web::get("/")]
@@ -187,7 +192,7 @@ fn query(
 }
 
 fn render(
-    template: &tera_hot::Template,
+    template: &tera::Tera,
     pager: &elephantry::Pager<Entity>,
     base_url: &str,
     q: Option<&str>,

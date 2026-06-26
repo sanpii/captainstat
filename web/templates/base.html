@@ -1,5 +1,3 @@
-{% import "macros.html" as macros %}
-
 <html>
     <head>
         <meta charset="utf-8" />
@@ -15,7 +13,7 @@
                     <a class="text-white navbar-brand" href="/">CaptainStat</a>
 
                     {% if base_url %}
-                        <form action="/search{{ base_url|trim_start_matches(pat="/search") }}" method="get">
+                        <form action="/search{{ base_url|trim_start(pat="/search") }}" method="get">
                             <input
                                 class="form-control form-control-dark me-2"
                                 type="text"
@@ -29,7 +27,7 @@
                         <form></form>
                     {% endif %}
                     <a href="https://github.com/sanpii/captainstat" target="_blank" title="Code source">
-                        {{ macros::svg(icon="file-earmark-code", size=32) }}
+                        {{ <svg icon="file-earmark-code" size={32} /> }}
                     </a>
                 </div>
             </div>
