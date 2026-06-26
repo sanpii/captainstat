@@ -27,6 +27,8 @@ impl From<&Error> for actix_web::http::StatusCode {
 
 impl actix_web::error::ResponseError for Error {
     fn error_response(&self) -> actix_web::HttpResponse {
+        log::error!("{self:?}");
+
         let status: actix_web::http::StatusCode = self.into();
 
         let template = match crate::template() {
