@@ -4,7 +4,7 @@ pub struct Entity {
     #[elephantry(pk)]
     pub comment_id: i32,
     pub approve: Option<bool>,
-    pub inserted_at: chrono::DateTime<chrono::FixedOffset>,
+    pub inserted_at: jiff::Zoned,
     pub is_reported: bool,
     pub reply_to_id: Option<i32>,
     pub score: Option<i32>,

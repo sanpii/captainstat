@@ -4,7 +4,7 @@ pub struct Entity {
     #[elephantry(pk)]
     pub video_id: i32,
     pub hash_id: String,
-    pub posted_at: chrono::DateTime<chrono::FixedOffset>,
+    pub posted_at: jiff::Zoned,
     pub is_partner: bool,
     pub speaker_ids: Vec<i32>,
     pub thumbnail: String,

@@ -228,9 +228,9 @@ impl TryInto<crate::model::comment::Entity> for Comment {
         let entity = crate::model::comment::Entity {
             comment_id: self.id,
             approve: self.approve,
-            inserted_at: chrono::DateTime::parse_from_str(
-                &format!("{} +0000", self.inserted_at),
+            inserted_at: jiff::Zoned::strptime(
                 "%Y-%m-%dT%H:%M:%S%.6f %z",
+                &format!("{} +0000", self.inserted_at),
             )?,
             is_reported: self.is_reported,
             reply_to_id: self.reply_to_id,
@@ -291,9 +291,9 @@ impl TryInto<crate::model::user::Entity> for User {
             mini_picture_url: self.mini_picture_url,
             name: self.name,
             picture_url: self.picture_url,
-            registered_at: chrono::DateTime::parse_from_str(
-                &format!("{} +0000", self.registered_at),
+            registered_at: jiff::Zoned::strptime(
                 "%Y-%m-%dT%H:%M:%S%.6f %z",
+                &format!("{} +0000", self.registered_at),
             )?,
             reputation: self.reputation,
             speaker_id: self.speaker_id,

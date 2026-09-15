@@ -7,7 +7,7 @@ pub struct Entity {
     pub mini_picture_url: String,
     pub name: Option<String>,
     pub picture_url: String,
-    pub registered_at: chrono::DateTime<chrono::FixedOffset>,
+    pub registered_at: jiff::Zoned,
     pub reputation: i32,
     pub speaker_id: Option<i32>,
     pub username: String,

@@ -7,6 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 envir.workspace = true
+jiff = "0.2"
 log.workspace = true
 serde.workspace = true
 serde_json = "1.0"
@@ -16,18 +17,13 @@ thiserror.workspace = true
 version = "0.31"
 features = ["json"]
 
-[dependencies.chrono]
-version = "0.4"
-default-features = false
-features = ["std"]
-
 [dependencies.clap]
 version = "4.0"
 features = ["derive"]
 
 [dependencies.elephantry]
 workspace = true
-features = ["date"]
+features = ["jiff"]
 
 [dependencies.tungstenite]
 version = "0.30"

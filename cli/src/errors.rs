@@ -9,7 +9,7 @@ pub enum Error {
     Database(#[from] elephantry::Error),
 
     #[error("{0}")]
-    Date(#[from] chrono::ParseError),
+    Date(#[from] jiff::Error),
 
     #[error("{0}")]
     Env(#[from] envir::Error),
